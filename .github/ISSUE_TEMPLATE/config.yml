@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💡 Feature Requests and Ideas
+    url: https://github.com/renatobardi/obo/discussions/new?category=ideas
+    about: Discuss features, product direction, design, architecture, and contribution proposals before they become work items
+  - name: ❓ Questions and Community Support
+    url: https://github.com/renatobardi/obo/discussions/new?category=q-a
+    about: Ask questions and get help from maintainers and the community
+  - name: 📚 Documentation
+    url: https://github.com/renatobardi/obo/tree/main/docs
+    about: Browse our comprehensive documentation

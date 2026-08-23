@@ -1,0 +1,1 @@
+@../obo/AGENTS.md
