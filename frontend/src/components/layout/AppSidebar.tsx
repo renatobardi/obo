@@ -47,20 +47,20 @@ const getNavigation = (t: TFunction) => [
   {
     title: t('navigation.collect'),
     items: [
-      { name: t('navigation.sources'), href: '/sources', icon: FileText, iconClass: 'text-sage' },
+      { name: t('navigation.sources'), href: '/sources', icon: FileText, iconClass: undefined },
     ],
   },
   {
     title: t('navigation.process'),
     items: [
-      { name: t('navigation.notebooks'), href: '/notebooks', icon: Book, iconClass: 'text-teal' },
+      { name: t('navigation.notebooks'), href: '/notebooks', icon: Book, iconClass: undefined },
       { name: t('navigation.askAndSearch'), href: '/search', icon: Search, iconClass: undefined },
     ],
   },
   {
     title: t('navigation.create'),
     items: [
-      { name: t('navigation.podcasts'), href: '/podcasts', icon: Mic, iconClass: 'text-mauve' },
+      { name: t('navigation.podcasts'), href: '/podcasts', icon: Mic, iconClass: undefined },
     ],
   },
   {
