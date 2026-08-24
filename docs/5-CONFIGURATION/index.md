@@ -10,7 +10,7 @@ Three things:
 
 1. **AI Provider** — Which LLM/embedding service you're using (OpenAI, Anthropic, Ollama, etc.)
 2. **Database** — How to connect to SurrealDB (usually pre-configured)
-3. **Server** — API URL, ports, timeouts (usually auto-detected)
+3. **Server** — API URL, ports, timeouts (usually needs no config — same-origin by default)
 
 ---
 
@@ -112,10 +112,10 @@ You only need to worry about this if you are deploying on a proxy or if you are 
 
 ```
 API_URL=https://your-domain.com
-# Usually auto-detected. Only set if needed.
+# Not needed for most setups — the frontend calls the API same-origin by default.
 ```
 
-Auto-detection works for most setups.
+Only set this for a split-origin deployment, or if your reverse proxy routes `/api/*` to the API port directly instead of letting the frontend proxy it. See [Reverse Proxy Setup](reverse-proxy.md#understanding-api_url).
 
 ---
 

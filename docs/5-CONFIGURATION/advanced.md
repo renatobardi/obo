@@ -140,7 +140,7 @@ services:
 
 Access at: `http://localhost:8001`
 
-API auto-detects to: `http://localhost:5055` ✓
+The frontend still reaches the API automatically — it calls `/api/*` on its own origin, and Next.js's internal rewrite forwards that to `http://localhost:5055` inside the container. No `API_URL` needed. ✓
 
 ### Changing API Port
 
@@ -156,7 +156,7 @@ services:
 
 Access API directly: `http://localhost:5056/docs`
 
-**Note:** When changing API port, you must set `API_URL` explicitly since auto-detection assumes port 5055.
+**Note:** When exposing the API on a different published port like this, the browser needs to reach it directly (bypassing the same-origin rewrite), so `API_URL` must be set explicitly to that port.
 
 ### Changing SurrealDB Port
 

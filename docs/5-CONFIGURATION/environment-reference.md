@@ -8,7 +8,7 @@ Comprehensive list of all environment variables available in Obo.
 
 | Variable | Required? | Default | Description |
 |----------|-----------|---------|-------------|
-| `API_URL` | No | Auto-detected | URL where frontend reaches API (e.g., http://localhost:5055) |
+| `API_URL` | No | Same-origin (`/api/*`) | Public URL the browser uses to reach the API. Only needed for a split-origin deployment or a reverse proxy that routes `/api/*` to the API port directly — see [Reverse Proxy Setup](reverse-proxy.md#understanding-api_url) |
 | `INTERNAL_API_URL` | No | http://localhost:5055 | Internal API URL for Next.js server-side proxying |
 | `API_CLIENT_TIMEOUT` | No | 300 | Client timeout in seconds (how long to wait for API response) |
 | `OBO_PASSWORD` | No | None | Password to protect Obo instance |

@@ -134,26 +134,16 @@ API_URL=https://your-domain.com
 
 ## Understanding API_URL
 
-The frontend uses a three-tier priority system to determine the API URL:
+The frontend uses a two-tier priority system to determine the API URL:
 
 1. **Runtime Configuration** (Highest Priority): `API_URL` environment variable set at container runtime
 2. **Build-time Configuration**: `NEXT_PUBLIC_API_URL` baked into the Docker image
-3. **Auto-detection** (Fallback): Infers from the incoming HTTP request headers
 
-### Auto-Detection Details
+**When neither is set**, the browser calls `/api/*` same-origin, and Next.js's own rewrite (`next.config.ts`, controlled by `INTERNAL_API_URL`, default `http://localhost:5055`) forwards it to the backend server-side. This is the default for a reason: it works for every deployment shape in this guide — including the single-exposed-port reverse proxy setups below — without you needing to set anything. There is no header-based auto-detection; the frontend never guesses a host or port from the incoming request.
 
-When `API_URL` is not set, the Next.js frontend:
-- Analyzes the incoming HTTP request
-- Extracts the hostname from the `host` header
-- Respects the `X-Forwarded-Proto` header (for HTTPS behind reverse proxies)
-- Constructs the API URL as `{protocol}://{hostname}:5055`
-- Example: Request to `http://10.20.30.20:8502` → API URL becomes `http://10.20.30.20:5055`
-
-**Why set API_URL explicitly?**
-- **Reliability**: Auto-detection can fail with complex proxy setups
-- **HTTPS**: Ensures frontend uses `https://` when behind SSL-terminating proxy
-- **Custom domains**: Works correctly with domain names instead of IP addresses
-- **Port mapping**: Avoids exposing port 5055 in the URL when using reverse proxy
+**When to set API_URL explicitly:**
+- **Split-origin deployments**: the frontend and backend are reachable at genuinely different hostnames/ports from the browser (not just proxied under the same origin), and you've enabled CORS for it.
+- **Two-port reverse proxy setups**: if your proxy config routes `/api/*` to port `5055` directly instead of letting Next.js's rewrite handle it (several examples below do this), set `API_URL` to match so the browser talks to the same place your proxy expects.
 
 **Important**: Don't include `/api` at the end - the system adds this automatically!
 
@@ -614,7 +604,6 @@ You'll see which API URL is being used
 **Example bad output:**
 ```
 ❌ [Config] Failed to fetch runtime config
-⚠️  [Config] Using auto-detected URL: http://localhost:5055
 ```
 
 **Step 2: Test API directly**
@@ -861,11 +850,11 @@ curl -H "Authorization: Bearer your-password-here" \
 ## Best Practices
 
 1. **Always use HTTPS** in production
-2. **Set API_URL explicitly** when using reverse proxies to avoid auto-detection issues
+2. **You usually don't need to set API_URL at all** — only set it for a split-origin deployment, or if your proxy routes `/api/*` to port `5055` directly instead of letting Next.js's rewrite handle it
 3. **Bind to localhost** (`127.0.0.1:8502`) and let proxy handle public access for security
 4. **Enable security headers** (HSTS, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
 5. **Set up certificate renewal** for Let's Encrypt (usually automatic with certbot)
-6. **Keep ports 5055 and 8502 accessible** from your reverse proxy container (use Docker networks)
+6. **Only port 8502 needs to be reachable** from your reverse proxy — `5055` only matters if your proxy config routes `/api/*` there explicitly (see "Understanding API_URL" above)
 7. **Use environment files** (`.env` or `docker.env`) to manage configuration securely
 8. **Test your configuration** before going live:
    - Check browser console for config messages
