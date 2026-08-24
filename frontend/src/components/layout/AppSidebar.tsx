@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { OboMark } from './OboMark'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useSidebarStore } from '@/lib/stores/sidebar-store'
 import { useCreateDialogs } from '@/lib/hooks/use-create-dialogs'
@@ -73,17 +74,6 @@ const getNavigation = (t: TFunction) => [
   },
 ] as const
 
-// The tri-hue mark recomposed in the owned palette: fern / gold / teal.
-function LogoPebbles({ className }: { className?: string }) {
-  return (
-    <span className={cn('flex items-center gap-[3px]', className)} aria-hidden="true">
-      <span className="size-[9px] rounded-[3px] bg-fern" />
-      <span className="size-[9px] rounded-[3px] bg-gold" />
-      <span className="size-[9px] rounded-[3px] bg-teal" />
-    </span>
-  )
-}
-
 type CreateTarget = 'source' | 'notebook' | 'podcast'
 
 export function AppSidebar() {
@@ -130,7 +120,7 @@ export function AppSidebar() {
         >
           {isCollapsed ? (
             <div className="relative flex items-center justify-center w-full">
-              <LogoPebbles className="flex-col gap-[3px] transition-opacity group-hover:opacity-0" />
+              <OboMark className="transition-opacity group-hover:opacity-0" />
               <Button
                 variant="ghost"
                 size="sm"
@@ -143,7 +133,7 @@ export function AppSidebar() {
           ) : (
             <>
               <div className="flex items-center gap-2.5">
-                <LogoPebbles />
+                <OboMark />
                 <span className="font-display text-[15px] font-bold tracking-tight text-sidebar-foreground">
                   {t('common.appName')}
                 </span>
