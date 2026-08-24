@@ -413,7 +413,7 @@ function SourceCardImpl({
             </div>
             <div className="w-full bg-muted rounded-full h-1.5">
               <div
-                className="bg-teal h-1.5 rounded-full transition-all duration-300"
+                className="bg-muted-foreground h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${statusData.processing_info.progress as number}%` }}
               />
             </div>

@@ -99,9 +99,7 @@ export function RecentlyViewed({ limit = 12 }: RecentlyViewedProps) {
                 className="group flex items-center gap-3 rounded-md border bg-card px-3 py-2 card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted ${
-                    item.type === 'notebook' ? 'text-teal' : 'text-sage'
-                  }`}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
                 >
                   <Icon className="h-3.5 w-3.5" />
                 </div>

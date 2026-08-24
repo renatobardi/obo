@@ -134,84 +134,88 @@
 
 :root {
   /* --------------------------------------------------------------
-     core palette — the owned hues, red-free
+     core palette — the owned hues, restated in stone (Kubo)
      -------------------------------------------------------------- */
-  --fern: #2e6b4f;
-  --fern-deep: #245740;
-  --fern-tint: #dfeae2;
+  --fern: #1c1917;
+  --fern-deep: #0c0a09;
+  --fern-tint: #f5f5f4;
 
-  --sage: #5e7a54;
-  --sage-deep: #47603f;
-  --sage-tint: #e5ebdc;
+  --sage: #a8a29e;
+  --sage-deep: #78716c;
+  --sage-tint: #f5f5f4;
 
-  --gold: #a97b12;
-  --gold-deep: #7c5a05;
-  --gold-tint: #f3ead3;
+  --gold: #78716c;
+  --gold-deep: #57534e;
+  --gold-tint: #f5f5f4;
 
-  --teal: #0e7268;
-  --teal-deep: #095a51;
-  --teal-tint: #ddece8;
+  --teal: #57534e;
+  --teal-deep: #44403c;
+  --teal-tint: #f5f5f4;
 
-  --plum: #5d4991;
-  --plum-tint: #eae6f3;
+  --plum: #44403c;
+  --plum-tint: #f5f5f4;
 
-  --mauve: #8d5b80;
-  --mauve-deep: #714566;
-  --mauve-tint: #f1e5ee;
+  --mauve: #78716c;
+  --mauve-deep: #57534e;
+  --mauve-tint: #f5f5f4;
 
-  --slate: #4e6b84;
-  --slate-deep: #3a5468;
-  --slate-tint: #e1e8ee;
+  --slate: #a8a29e;
+  --slate-deep: #78716c;
+  --slate-tint: #f5f5f4;
 
-  --violet: #6e51a6;
-  --violet-deep: #57408a;
-  --violet-tint: #ebe5f5;
+  --violet: #292524;
+  --violet-deep: #1c1917;
+  --violet-tint: #f5f5f4;
 
-  --clay: #b0451f;
-  --clay-deep: #93330f;
-  --clay-tint: #f5e4db;
+  --clay: #b45309;
+  --clay-deep: #92400e;
+  --clay-tint: #fef3c7;
 
   /* --------------------------------------------------------------
      semantic raws — surfaces, ink, hairlines, action, danger
      -------------------------------------------------------------- */
-  --bg: #f5f5f2;
-  --bg-deep: #eeeee9;
-  --surface: #fefefc;
-  --surface-raised: #ffffff;
-  --surface-recessed: #f4f4f0;
-  --surface-sunken: #ecece7;
+  --bg: #ffffff;
+  --bg-deep: #fafaf9;
+  --surface: #ffffff;
+  --surface-raised: #fafaf9;
+  --surface-recessed: #f5f5f4;
+  --surface-sunken: #f5f5f4;
 
-  --ink: #23252a;
-  --ink-soft: #565a61;
-  --ink-faint: #878b92;
-  --ink-faintest: #a8abb1;
+  --ink: #0c0a09;
+  --ink-soft: #78716c;
+  --ink-faint: #a8a29e;
+  --ink-faintest: #d6d3d1;
 
-  --line: #e0e0da;
-  --line-soft: #e8e8e2;
-  --line-strong: #23252a;
+  --line: #e7e5e4;
+  --line-soft: #f5f5f4;
+  --line-strong: #0c0a09;
 
-  --primary: #2e6b4f;
-  --primary-hover: #245740;
-  --on-primary: #f1f8f3;
+  --primary: #1c1917;
+  --primary-hover: #292524;
+  --on-primary: #fafaf9;
 
-  --danger: #b0432d;
-  --danger-deep: #93341f;
-  --danger-tint: #f5e4df;
+  --danger: #dc2626;
+  --danger-deep: #b91c1c;
+  --danger-tint: #fee2e2;
 
   --warn: var(--clay);
   --warn-deep: var(--clay-deep);
   --warn-tint: var(--clay-tint);
 
-  /* teal evidence washes — the one sanctioned tinted text bg */
-  --excerpt-wash: #ecf3f0;
-  --best-match: rgba(14, 114, 104, 0.16);
-  --best-match-ring: rgba(14, 114, 104, 0.16);
+  /* evidence washes — stone, not teal */
+  --excerpt-wash: #f5f5f4;
+  --best-match: rgba(28, 25, 23, 0.08);
+  --best-match-ring: rgba(28, 25, 23, 0.12);
 
-  /* depth */
-  --shadow-soft: 0 1px 2px rgba(35, 37, 42, 0.06);
-  --shadow-lift: 0 1px 3px rgba(35, 37, 42, 0.1);
-  --shadow-pop: 0 1px 2px rgba(35, 37, 42, 0.08), 0 8px 26px rgba(35, 37, 42, 0.13);
-  --shadow-overlay: 0 2px 6px rgba(35, 37, 42, 0.1), 0 16px 44px rgba(35, 37, 42, 0.18);
+  /* depth — Kubo prefers rings; keep the shadows minimal */
+  --shadow-soft: 0 1px 2px rgba(12, 10, 9, 0.04);
+  --shadow-lift: 0 1px 3px rgba(12, 10, 9, 0.08);
+  --shadow-pop: 0 1px 2px rgba(12, 10, 9, 0.06), 0 8px 26px rgba(12, 10, 9, 0.1);
+  --shadow-overlay: 0 2px 6px rgba(12, 10, 9, 0.08), 0 16px 44px rgba(12, 10, 9, 0.14);
+
+  /* sakura mark — light: pink petals, stone ink */
+  --sakura-petal: #f4c9d4;
+  --sakura-ink: var(--ink);
 
   /* --------------------------------------------------------------
      aliases — re-resolve automatically in dark; defined once
@@ -300,68 +304,72 @@
    ========================================================================== */
 .dark {
   /* core palette */
-  --fern: #55b285;
-  --fern-deep: #6cc298;
-  --fern-tint: #1b2f25;
-  --sage: #93b084;
-  --sage-deep: #a8c299;
-  --sage-tint: #232b1d;
-  --gold: #cfa13e;
-  --gold-deep: #ddb55f;
-  --gold-tint: #322b1b;
-  --teal: #3fb3a5;
-  --teal-deep: #64c5b9;
-  --teal-tint: #16302c;
-  --plum: #a290d3;
-  --plum-tint: #29253a;
-  --mauve: #c892ba;
-  --mauve-deep: #d6a8cb;
-  --mauve-tint: #322230;
-  --slate: #8fafc8;
-  --slate-deep: #a5c1d6;
-  --slate-tint: #212b34;
-  --violet: #a995db;
-  --violet-deep: #bcaae6;
-  --violet-tint: #2b2540;
-  --clay: #f08a5c;
-  --clay-deep: #f5a07a;
-  --clay-tint: #35211a;
+  --fern: #e7e5e4;
+  --fern-deep: #f5f5f4;
+  --fern-tint: #292524;
+  --sage: #a8a29e;
+  --sage-deep: #d6d3d1;
+  --sage-tint: #292524;
+  --gold: #a8a29e;
+  --gold-deep: #d6d3d1;
+  --gold-tint: #292524;
+  --teal: #d6d3d1;
+  --teal-deep: #e7e5e4;
+  --teal-tint: #292524;
+  --plum: #d6d3d1;
+  --plum-tint: #292524;
+  --mauve: #a8a29e;
+  --mauve-deep: #d6d3d1;
+  --mauve-tint: #292524;
+  --slate: #a8a29e;
+  --slate-deep: #d6d3d1;
+  --slate-tint: #292524;
+  --violet: #d6d3d1;
+  --violet-deep: #e7e5e4;
+  --violet-tint: #292524;
+  --clay: #f59e0b;
+  --clay-deep: #fbbf24;
+  --clay-tint: #3a2a09;
 
   /* semantic raws */
-  --bg: #17181b;
-  --bg-deep: #121316;
-  --surface: #1e2024;
-  --surface-raised: #24262b;
-  --surface-recessed: #24262b;
-  --surface-sunken: #2b2d33;
+  --bg: #0c0a09;
+  --bg-deep: #0c0a09;
+  --surface: #1c1917;
+  --surface-raised: #292524;
+  --surface-recessed: #292524;
+  --surface-sunken: #292524;
 
-  --ink: #ecedea;
-  --ink-soft: #a9acb1;
-  --ink-faint: #74777d;
-  --ink-faintest: #63666c;
+  --ink: #fafaf9;
+  --ink-soft: #a8a29e;
+  --ink-faint: #78716c;
+  --ink-faintest: #57534e;
 
-  --line: #2e3036;
-  --line-soft: #26282d;
-  --line-strong: #ecedea;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --line-strong: #fafaf9;
 
-  --primary: #3d8e67;
-  --primary-hover: #479e74;
-  --on-primary: #ecf7f0;
+  --primary: #e7e5e4;
+  --primary-hover: #f5f5f4;
+  --on-primary: #1c1917;
 
-  --danger: #df7c63;
-  --danger-deep: #e9937d;
-  --danger-tint: #37231d;
+  --danger: #f87171;
+  --danger-deep: #fca5a5;
+  --danger-tint: #3b1a1a;
 
   /* evidence washes */
-  --excerpt-wash: #1c2a28;
-  --best-match: rgba(63, 179, 165, 0.2);
-  --best-match-ring: rgba(63, 179, 165, 0.2);
+  --excerpt-wash: #292524;
+  --best-match: rgba(250, 250, 249, 0.1);
+  --best-match-ring: rgba(250, 250, 249, 0.14);
 
   /* depth */
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-lift: 0 1px 3px rgba(0, 0, 0, 0.45);
-  --shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px rgba(0, 0, 0, 0.5);
-  --shadow-overlay: 0 2px 6px rgba(0, 0, 0, 0.4), 0 20px 52px rgba(0, 0, 0, 0.55);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.55);
+  --shadow-overlay: 0 2px 6px rgba(0, 0, 0, 0.45), 0 20px 52px rgba(0, 0, 0, 0.6);
+
+  /* dark: petals read as the background, pink outline */
+  --sakura-petal: transparent;
+  --sakura-ink: #f4c9d4;
 }
 
 @layer base {

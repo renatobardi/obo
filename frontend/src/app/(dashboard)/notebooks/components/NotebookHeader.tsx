@@ -98,7 +98,7 @@ export function NotebookHeader({ notebook }: NotebookHeaderProps) {
           </div>
 
           {/* Signature: one short flat fern underline — one hue, no show */}
-          <div aria-hidden className="h-[3px] w-14 rounded-[1px] bg-fern" />
+          <div aria-hidden className="h-[3px] w-14 rounded-[1px] bg-foreground" />
 
           <InlineEdit
             id="notebook-description"
