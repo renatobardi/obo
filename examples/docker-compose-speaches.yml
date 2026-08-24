@@ -49,7 +49,8 @@ services:
     # and add GPU device mapping (see docs/5-CONFIGURATION/local-tts.md)
 
   obo:
-    image: ghcr.io/renatobardi/obo:v1-latest
+    # v1-dev until the first stable release is cut (issue #10)
+    image: ghcr.io/renatobardi/obo:v1-dev
     ports:
       - "8502:8502"
       - "5055:5055"

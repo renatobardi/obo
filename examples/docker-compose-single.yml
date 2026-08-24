@@ -1,6 +1,6 @@
 services:
   obo_single:
-    # image: ghcr.io/renatobardi/obo:v1-latest-single
+    # image: ghcr.io/renatobardi/obo:v1-dev-single
     build:
       context: .
       dockerfile: Dockerfile

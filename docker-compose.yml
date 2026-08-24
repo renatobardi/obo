@@ -24,7 +24,9 @@ services:
     pull_policy: always
 
   obo:
-    image: ghcr.io/renatobardi/obo:v1-latest
+    # v1-dev until the first stable release is cut (see issue #10) — v1-latest
+    # doesn't exist yet.
+    image: ghcr.io/renatobardi/obo:v1-dev
     ports:
       - "8502:8502"  # Web UI
       - "5055:5055"  # REST API
