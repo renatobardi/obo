@@ -208,6 +208,7 @@ export const trTR = {
     passwordPlaceholder: "Şifre",
     signingIn: "Giriş yapılıyor...",
     signIn: "Giriş Yap",
+    signInWithGoogle: "Google ile Giriş Yap",
     connectErrorHint: "Sunucuya bağlanılamıyor. API'nin çalışıp çalışmadığını kontrol edin.",
   },
   navigation: {

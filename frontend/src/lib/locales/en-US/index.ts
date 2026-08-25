@@ -206,6 +206,7 @@ export const enUS = {
     passwordPlaceholder: "Password",
     signingIn: "Signing in...",
     signIn: "Sign In",
+    signInWithGoogle: "Sign in with Google",
     connectErrorHint: "Unable to connect to server. Please check if the API is running.",
   },
   navigation: {

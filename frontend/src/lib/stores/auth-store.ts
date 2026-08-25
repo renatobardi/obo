@@ -3,6 +3,32 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import apiClient from '@/lib/api/client'
 import { getApiUrl } from '@/lib/config'
+import { signInWithGoogle } from '@/lib/firebase'
+
+type AuthMode = 'password' | 'firebase'
+
+// Shared state-transition shape between login() and loginWithGoogle(): both
+// probe/establish a bearer token via a raw fetch (see the inline comments on
+// each) and land in one of these two shapes. Error-message derivation stays
+// in each action - only the resulting state shape is identical.
+function authSuccessState(token: string) {
+  return {
+    isAuthenticated: true,
+    token,
+    isLoading: false,
+    lastAuthCheck: Date.now(),
+    error: null
+  }
+}
+
+function authFailureState(error: string) {
+  return {
+    error,
+    isLoading: false,
+    isAuthenticated: false,
+    token: null
+  }
+}
 
 interface AuthState {
   isAuthenticated: boolean
@@ -13,9 +39,11 @@ interface AuthState {
   isCheckingAuth: boolean
   hasHydrated: boolean
   authRequired: boolean | null
+  authMode: AuthMode
   setHasHydrated: (state: boolean) => void
   checkAuthRequired: () => Promise<boolean>
   login: (password: string) => Promise<boolean>
+  loginWithGoogle: () => Promise<boolean>
   logout: () => void
   checkAuth: () => Promise<boolean>
 }
@@ -31,6 +59,7 @@ export const useAuthStore = create<AuthState>()(
       isCheckingAuth: false,
       hasHydrated: false,
       authRequired: null,
+      authMode: 'password',
 
       setHasHydrated: (state: boolean) => {
         set({ hasHydrated: state })
@@ -38,12 +67,14 @@ export const useAuthStore = create<AuthState>()(
 
       checkAuthRequired: async () => {
         try {
-          const response = await apiClient.get<{ auth_enabled?: boolean }>('/auth/status', {
-            headers: { 'Cache-Control': 'no-store' },
-          })
+          const response = await apiClient.get<{ auth_enabled?: boolean; mode?: AuthMode }>(
+            '/auth/status',
+            { headers: { 'Cache-Control': 'no-store' } }
+          )
 
           const required = response.data.auth_enabled || false
-          set({ authRequired: required })
+          const mode: AuthMode = response.data.mode === 'firebase' ? 'firebase' : 'password'
+          set({ authRequired: required, authMode: mode })
 
           // If auth is not required, mark as authenticated
           if (!required) {
@@ -87,13 +118,7 @@ export const useAuthStore = create<AuthState>()(
           })
           
           if (response.ok) {
-            set({ 
-              isAuthenticated: true, 
-              token: password, 
-              isLoading: false,
-              lastAuthCheck: Date.now(),
-              error: null
-            })
+            set(authSuccessState(password))
             return true
           } else {
             let errorMessage = 'Authentication failed'
@@ -106,19 +131,14 @@ export const useAuthStore = create<AuthState>()(
             } else {
               errorMessage = `Authentication failed (${response.status})`
             }
-            
-            set({ 
-              error: errorMessage,
-              isLoading: false,
-              isAuthenticated: false,
-              token: null
-            })
+
+            set(authFailureState(errorMessage))
             return false
           }
         } catch (error) {
           console.error('Network error during auth:', error)
           let errorMessage = 'Authentication failed'
-          
+
           if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
             errorMessage = 'Unable to connect to server. Please check if the API is running.'
           } else if (error instanceof Error) {
@@ -126,19 +146,55 @@ export const useAuthStore = create<AuthState>()(
           } else {
             errorMessage = 'An unexpected error occurred during authentication'
           }
-          
-          set({ 
-            error: errorMessage,
-            isLoading: false,
-            isAuthenticated: false,
-            token: null
-          })
+
+          set(authFailureState(errorMessage))
           return false
         }
       },
-      
+
+      loginWithGoogle: async () => {
+        set({ isLoading: true, error: null })
+        try {
+          const idToken = await signInWithGoogle()
+          const apiUrl = await getApiUrl()
+
+          // Provisions (or looks up) this identity's tenant - see #27. Same
+          // raw-fetch reasoning as login(): this call establishes the token,
+          // so it must not go through interceptors that assume one already exists.
+          const response = await fetch(`${apiUrl}/api/auth/complete-signup`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          if (response.ok) {
+            set(authSuccessState(idToken))
+            return true
+          } else {
+            set(authFailureState(`Failed to complete sign-up (${response.status})`))
+            return false
+          }
+        } catch (error) {
+          console.error('Google sign-in error:', error)
+          let errorMessage = 'Google sign-in failed'
+
+          if (error instanceof Error) {
+            // A popup closed by the user is an expected cancellation, not a
+            // real failure worth alarming over.
+            errorMessage = error.message.includes('popup-closed-by-user')
+              ? 'Sign-in was cancelled'
+              : error.message
+          }
+
+          set(authFailureState(errorMessage))
+          return false
+        }
+      },
+
       logout: () => {
-        set({ 
+        set({
           isAuthenticated: false, 
           token: null, 
           error: null 

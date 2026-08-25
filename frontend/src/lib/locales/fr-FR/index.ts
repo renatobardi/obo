@@ -208,6 +208,7 @@ export const frFR = {
     passwordPlaceholder: "Mot de passe",
     signingIn: "Connexion...",
     signIn: "Se connecter",
+    signInWithGoogle: "Se connecter avec Google",
     connectErrorHint: "Impossible de se connecter au serveur. Veuillez vérifier si l'API est lancée.",
   },
   navigation: {

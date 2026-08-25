@@ -91,15 +91,19 @@ async def get_notebooks(
             )
 
         # Build the query with counts
-        query = f"""
+        bind_vars: dict = {}
+        query = Notebook._apply_scope(
+            """
             SELECT *,
             count(<-reference.in) as source_count,
             count(<-artifact.in) as note_count
             FROM notebook
-            ORDER BY {validated_order_by}
-        """
+            """,
+            bind_vars,
+        )
+        query += f" ORDER BY {validated_order_by}"
 
-        result = await repo_query(query)
+        result = await repo_query(query, bind_vars)
 
         # Filter by archived status if specified
         if archived is not None:
@@ -244,13 +248,17 @@ async def get_notebook(notebook_id: str):
     """Get a specific notebook by ID."""
     try:
         # Query with counts for single notebook
-        query = """
+        bind_vars: dict = {"notebook_id": ensure_record_id(notebook_id)}
+        query = Notebook._apply_scope(
+            """
             SELECT *,
             count(<-reference.in) as source_count,
             count(<-artifact.in) as note_count
             FROM $notebook_id
-        """
-        result = await repo_query(query, {"notebook_id": ensure_record_id(notebook_id)})
+            """,
+            bind_vars,
+        )
+        result = await repo_query(query, bind_vars)
 
         if not result:
             raise HTTPException(status_code=404, detail="Notebook not found")

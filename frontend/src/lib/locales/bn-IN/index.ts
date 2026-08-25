@@ -208,6 +208,7 @@ export const bnIN = {
     passwordPlaceholder: "পাসওয়ার্ড",
     signingIn: "সাইন ইন করা হচ্ছে...",
     signIn: "সাইন ইন",
+    signInWithGoogle: "Google দিয়ে সাইন ইন করুন",
     connectErrorHint: "সার্ভারে সংযোগ করতে অক্ষম। API চালু আছে কিনা চেক করুন।",
   },
   navigation: {

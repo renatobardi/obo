@@ -208,6 +208,7 @@ export const zhTW = {
     passwordPlaceholder: "密碼",
     signingIn: "正在登入...",
     signIn: "登入",
+    signInWithGoogle: "使用 Google 登入",
     connectErrorHint: "無法連線至伺服器。請檢查 API 是否正在運行。",
   },
   navigation: {

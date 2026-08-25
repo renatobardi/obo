@@ -1,0 +1,4 @@
+-- Migration 25 rollback: remove tenant ownership (#27)
+
+UPDATE tenant UNSET owner;
+REMOVE FIELD IF EXISTS owner ON TABLE tenant;

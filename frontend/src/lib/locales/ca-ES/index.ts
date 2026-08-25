@@ -208,6 +208,7 @@ export const caES = {
     passwordPlaceholder: "Contrasenya",
     signingIn: "S'està iniciant la sessió...",
     signIn: "Inicia la sessió",
+    signInWithGoogle: "Inicia la sessió amb Google",
     connectErrorHint: "No es pot connectar al servidor. Comprova si l'API s'està executant.",
   },
   navigation: {

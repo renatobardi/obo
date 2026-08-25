@@ -211,6 +211,7 @@ export const deDE = {
     passwordPlaceholder: "Passwort",
     signingIn: "Anmelden...",
     signIn: "Anmelden",
+    signInWithGoogle: "Mit Google anmelden",
     connectErrorHint: "Keine Verbindung zum Server möglich. Bitte prüfe, ob die API läuft.",
   },
   navigation: {
