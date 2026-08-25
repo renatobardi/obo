@@ -20,7 +20,7 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from api.auth import PasswordAuthMiddleware
+from api.auth import FirebaseAuthMiddleware, PasswordAuthMiddleware, get_auth_mode
 from api.middleware import MaxBodySizeMiddleware, get_max_upload_size_bytes
 from api.routers import (
     auth,
@@ -232,20 +232,24 @@ if CORS_IS_DEFAULT_WILDCARD:
 else:
     logger.info(f"CORS allowed origins: {CORS_ALLOWED_ORIGINS}")
 
-# Add password authentication middleware first
-# Exclude /api/auth/status and /api/config from authentication
-app.add_middleware(
-    PasswordAuthMiddleware,
-    excluded_paths=[
-        "/",
-        "/health",
-        "/docs",
-        "/openapi.json",
-        "/redoc",
-        "/api/auth/status",
-        "/api/config",
-    ],
-)
+# Add the auth middleware first - exactly one mode per instance, chosen at
+# deploy time via OBO_AUTH_MODE (default "password"). Exclude
+# /api/auth/status and /api/config from authentication either way.
+AUTH_MODE = get_auth_mode()
+_AUTH_EXCLUDED_PATHS = [
+    "/",
+    "/health",
+    "/docs",
+    "/openapi.json",
+    "/redoc",
+    "/api/auth/status",
+    "/api/config",
+]
+if AUTH_MODE == "firebase":
+    logger.info("OBO_AUTH_MODE=firebase — Firebase ID token authentication is active")
+    app.add_middleware(FirebaseAuthMiddleware, excluded_paths=_AUTH_EXCLUDED_PATHS)
+else:
+    app.add_middleware(PasswordAuthMiddleware, excluded_paths=_AUTH_EXCLUDED_PATHS)
 
 # Reject oversized request bodies before they reach auth or routing - added
 # after PasswordAuthMiddleware (so it wraps around it) so a too-large request

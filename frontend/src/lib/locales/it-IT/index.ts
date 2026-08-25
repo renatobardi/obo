@@ -208,6 +208,7 @@ export const itIT = {
     passwordPlaceholder: "Password",
     signingIn: "Accesso in corso...",
     signIn: "Accedi",
+    signInWithGoogle: "Accedi con Google",
     connectErrorHint: "Impossibile connettersi al server. Verifica che l'API sia in esecuzione.",
   },
   navigation: {

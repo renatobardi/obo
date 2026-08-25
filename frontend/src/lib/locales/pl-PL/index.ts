@@ -208,6 +208,7 @@ export const plPL = {
     passwordPlaceholder: "Hasło",
     signingIn: "Logowanie...",
     signIn: "Zaloguj się",
+    signInWithGoogle: "Zaloguj się przez Google",
     connectErrorHint: "Nie można połączyć się z serwerem. Sprawdź, czy API jest uruchomione.",
   },
   navigation: {

@@ -208,6 +208,7 @@ export const zhCN = {
     passwordPlaceholder: "密码",
     signingIn: "正在登录...",
     signIn: "登录",
+    signInWithGoogle: "使用 Google 登录",
     connectErrorHint: "无法连接到服务器。请检查 API 是否正在运行。",
   },
   navigation: {

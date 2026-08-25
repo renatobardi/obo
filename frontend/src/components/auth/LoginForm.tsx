@@ -16,7 +16,7 @@ import { OboMark } from '@/components/layout/OboMark'
 export function LoginForm() {
   const { t, language } = useTranslation()
   const [password, setPassword] = useState('')
-  const { login, isLoading, error } = useAuth()
+  const { login, loginWithGoogle, isLoading, error, authMode } = useAuth()
   const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated } = useAuthStore()
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [configInfo, setConfigInfo] = useState<{ apiUrl: string; version: string; buildTime: string } | null>(null)
@@ -138,6 +138,15 @@ export function LoginForm() {
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await loginWithGoogle()
+    } catch (error) {
+      console.error('Unhandled error during Google sign-in:', error)
+      // The auth store should handle most errors, but this catches any unhandled ones
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -151,41 +160,81 @@ export function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                type="password"
-                placeholder={t('auth.passwordPlaceholder')}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+          {authMode === 'firebase' ? (
+            <div className="space-y-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
                 disabled={isLoading}
-              />
+              >
+                <GoogleIcon className="h-4 w-4" />
+                {isLoading ? t('auth.signingIn') : t('auth.signInWithGoogle')}
+              </Button>
+
+              {error && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  {error}
+                </div>
+              )}
+
+              {configInfo && (
+                <div className="text-xs text-center text-muted-foreground pt-2 border-t">
+                  <div>{t('common.version')} {configInfo.version}</div>
+                  <div className="font-mono text-[10px]">{configInfo.apiUrl}</div>
+                </div>
+              )}
             </div>
-
-            {error && (
-              <div className="flex items-center gap-2 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                {error}
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Input
+                  type="password"
+                  placeholder={t('auth.passwordPlaceholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading || !password.trim()}
-            >
-              {isLoading ? t('auth.signingIn') : t('auth.signIn')}
-            </Button>
+              {error && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  {error}
+                </div>
+              )}
 
-            {configInfo && (
-              <div className="text-xs text-center text-muted-foreground pt-2 border-t">
-                <div>{t('common.version')} {configInfo.version}</div>
-                <div className="font-mono text-[10px]">{configInfo.apiUrl}</div>
-              </div>
-            )}
-          </form>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading || !password.trim()}
+              >
+                {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+              </Button>
+
+              {configInfo && (
+                <div className="text-xs text-center text-muted-foreground pt-2 border-t">
+                  <div>{t('common.version')} {configInfo.version}</div>
+                  <div className="font-mono text-[10px]">{configInfo.apiUrl}</div>
+                </div>
+              )}
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+      <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+    </svg>
   )
 }

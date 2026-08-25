@@ -1,0 +1,9 @@
+-- Migration 25: tenant ownership (#27)
+-- Firebase self-serve signup creates a new tenant per first-time identity,
+-- with that identity as its owner. tenant:default (the password-mode
+-- sentinel from #26) gets user:default as its owner for the same reason
+-- migration 24 backfills every other scoped field: one consistent shape,
+-- not a NONE the app has to special-case.
+
+DEFINE FIELD IF NOT EXISTS owner ON tenant TYPE option<record<user>>;
+UPDATE tenant:default SET owner = user:default WHERE owner = NONE;

@@ -208,6 +208,7 @@ export const esES = {
     passwordPlaceholder: "Contraseña",
     signingIn: "Iniciando sesión...",
     signIn: "Iniciar sesión",
+    signInWithGoogle: "Iniciar sesión con Google",
     connectErrorHint: "No se puede conectar al servidor. Por favor, verifica si la API está funcionando.",
   },
   navigation: {

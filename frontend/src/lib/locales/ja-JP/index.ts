@@ -208,6 +208,7 @@ export const jaJP = {
     passwordPlaceholder: "パスワード",
     signingIn: "サインイン中...",
     signIn: "サインイン",
+    signInWithGoogle: "Googleでサインイン",
     connectErrorHint: "サーバーに接続できません。APIが起動しているか確認してください。",
   },
   navigation: {

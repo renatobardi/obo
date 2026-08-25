@@ -208,6 +208,7 @@ export const ruRU = {
     passwordPlaceholder: "Пароль",
     signingIn: "Вход...",
     signIn: "Войти",
+    signInWithGoogle: "Войти через Google",
     connectErrorHint: "Не удаётся подключиться к серверу. Проверьте, запущен ли API.",
   },
   navigation: {
