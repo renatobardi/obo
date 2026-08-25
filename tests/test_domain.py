@@ -59,6 +59,37 @@ class TestRecordModelSingleton:
         # Cleanup
         TestRecord.clear_instance()
 
+    def test_recordmodel_singleton_is_per_tenant(self):
+        """Singleton key is (class, tenant), not just class (#26): the same
+        record_id must resolve to a different cached instance per tenant."""
+        from obo.domain.tenancy import current_tenant
+
+        class TestTenantRecord(RecordModel):
+            record_id = "test:tenant_singleton"
+            value: int = 0
+
+        token = current_tenant.set("tenant:acme")
+        try:
+            TestTenantRecord.clear_instance()
+            acme_instance = TestTenantRecord(value=1)
+        finally:
+            current_tenant.reset(token)
+
+        TestTenantRecord.clear_instance()  # default tenant's own slot
+        default_instance = TestTenantRecord(value=2)
+
+        assert acme_instance is not default_instance
+        assert acme_instance.value == 1
+        assert default_instance.value == 2
+
+        # Cleanup
+        token = current_tenant.set("tenant:acme")
+        try:
+            TestTenantRecord.clear_instance()
+        finally:
+            current_tenant.reset(token)
+        TestTenantRecord.clear_instance()
+
 
 # ============================================================================
 # TEST SUITE 2: ModelManager Instance Isolation

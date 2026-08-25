@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Union
 
 from loguru import logger
 from pydantic import ConfigDict, Field, field_validator
@@ -40,6 +40,7 @@ class EpisodeProfile(ObjectModel):
     """
 
     table_name: ClassVar[str] = "episode_profile"
+    scope: ClassVar[Literal["tenant"]] = "tenant"
     nullable_fields: ClassVar[set[str]] = {
         "description",
         "speaker_config",
@@ -133,6 +134,7 @@ class SpeakerProfile(ObjectModel):
     """
 
     table_name: ClassVar[str] = "speaker_profile"
+    scope: ClassVar[Literal["tenant"]] = "tenant"
     nullable_fields: ClassVar[set[str]] = {
         "description",
         "voice_model",
@@ -219,6 +221,7 @@ class PodcastEpisode(ObjectModel):
     """Enhanced PodcastEpisode with job tracking and metadata"""
 
     table_name: ClassVar[str] = "episode"
+    scope: ClassVar[Literal["owner"]] = "owner"
 
     name: str = Field(..., description="Episode name")
     episode_profile: Dict[str, Any] = Field(

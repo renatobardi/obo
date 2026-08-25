@@ -1,0 +1,49 @@
+-- Migration 24 rollback: remove tenant/owner scoping foundation (#26)
+-- UNSET first: REMOVE FIELD only drops the schema definition, not data
+-- already stored on existing rows (see migration 22's precedent).
+
+UPDATE notebook UNSET owner, tenant;
+UPDATE source UNSET owner, tenant;
+UPDATE source_embedding UNSET owner, tenant;
+UPDATE source_insight UNSET owner, tenant;
+UPDATE note UNSET owner, tenant;
+UPDATE chat_session UNSET owner, tenant;
+UPDATE episode UNSET owner, tenant;
+UPDATE credential UNSET tenant;
+UPDATE model UNSET tenant;
+UPDATE transformation UNSET tenant;
+UPDATE episode_profile UNSET tenant;
+UPDATE speaker_profile UNSET tenant;
+
+REMOVE FIELD IF EXISTS owner ON TABLE notebook;
+REMOVE FIELD IF EXISTS tenant ON TABLE notebook;
+
+REMOVE FIELD IF EXISTS owner ON TABLE source;
+REMOVE FIELD IF EXISTS tenant ON TABLE source;
+
+REMOVE FIELD IF EXISTS owner ON TABLE source_embedding;
+REMOVE FIELD IF EXISTS tenant ON TABLE source_embedding;
+
+REMOVE FIELD IF EXISTS owner ON TABLE source_insight;
+REMOVE FIELD IF EXISTS tenant ON TABLE source_insight;
+
+REMOVE FIELD IF EXISTS owner ON TABLE note;
+REMOVE FIELD IF EXISTS tenant ON TABLE note;
+
+REMOVE FIELD IF EXISTS owner ON TABLE chat_session;
+REMOVE FIELD IF EXISTS tenant ON TABLE chat_session;
+
+REMOVE FIELD IF EXISTS owner ON TABLE episode;
+REMOVE FIELD IF EXISTS tenant ON TABLE episode;
+
+REMOVE FIELD IF EXISTS tenant ON TABLE credential;
+REMOVE FIELD IF EXISTS tenant ON TABLE model;
+REMOVE FIELD IF EXISTS tenant ON TABLE transformation;
+REMOVE FIELD IF EXISTS tenant ON TABLE episode_profile;
+REMOVE FIELD IF EXISTS tenant ON TABLE speaker_profile;
+
+DELETE user:default;
+DELETE tenant:default;
+
+REMOVE TABLE IF EXISTS user;
+REMOVE TABLE IF EXISTS tenant;
