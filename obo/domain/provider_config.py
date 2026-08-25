@@ -207,7 +207,7 @@ class ProviderConfig(RecordModel):
         """
         result = await repo_query(
             "SELECT * FROM ONLY $record_id",
-            {"record_id": ensure_record_id(cls.record_id)},
+            {"record_id": ensure_record_id(cls._current_scoped_id())},
         )
 
         if result:
@@ -434,11 +434,10 @@ class ProviderConfig(RecordModel):
         and encryption.
         """
         data = self._prepare_save_data()
-        await repo_upsert("obo", self.record_id, data)
+        await repo_upsert("obo", self.__class__._current_scoped_id(), data)
         return self
 
     @classmethod
     def _clear_for_test(cls) -> None:
         """Clear the singleton instance for testing purposes."""
-        if cls.record_id in cls._instances:
-            del cls._instances[cls.record_id]
+        cls.clear_instance()

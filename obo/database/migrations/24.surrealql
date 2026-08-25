@@ -1,0 +1,85 @@
+-- Migration 24: Tenant/owner scoping foundation (#26, PDR-003)
+-- Prefactor for multitenant support: every deployment gains tenant/owner
+-- scoping unconditionally, with no visible behavior change yet. A fixed
+-- tenant:default/user:default sentinel absorbs every existing row, so
+-- password-mode installs (today's only mode) keep working identically.
+--
+-- No membership table: user.tenant is a direct record<tenant> field.
+--
+-- owner+tenant (private per user, within their tenant): notebook, source,
+-- source_embedding, source_insight, note, chat_session, episode.
+-- tenant only (shared within the tenant): credential, model, transformation,
+-- episode_profile, speaker_profile.
+--
+-- owner/tenant are defined as option<record<...>> (not required) even
+-- though the app always stamps a value: a required type is validated against
+-- EVERY existing row (not just ones matching a WHERE clause) the moment the
+-- field is defined, so an already-NONE value on a pre-existing row would
+-- make even the very backfill UPDATE below fail with "Found NONE ... but
+-- expected a record<...>".
+
+DEFINE TABLE IF NOT EXISTS tenant SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS created ON tenant DEFAULT time::now() VALUE $before OR time::now();
+DEFINE FIELD IF NOT EXISTS updated ON tenant DEFAULT time::now() VALUE time::now();
+
+DEFINE TABLE IF NOT EXISTS user SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS tenant ON user TYPE record<tenant>;
+DEFINE FIELD IF NOT EXISTS created ON user DEFAULT time::now() VALUE $before OR time::now();
+DEFINE FIELD IF NOT EXISTS updated ON user DEFAULT time::now() VALUE time::now();
+
+CREATE tenant:default;
+CREATE user:default SET tenant = tenant:default;
+
+-- owner+tenant scoped entities
+
+DEFINE FIELD IF NOT EXISTS owner ON notebook TYPE option<record<user>> DEFAULT user:default;
+DEFINE FIELD IF NOT EXISTS tenant ON notebook TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE notebook SET owner = user:default WHERE owner = NONE;
+UPDATE notebook SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS owner ON source TYPE option<record<user>> DEFAULT user:default;
+DEFINE FIELD IF NOT EXISTS tenant ON source TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE source SET owner = user:default WHERE owner = NONE;
+UPDATE source SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS owner ON source_embedding TYPE option<record<user>> DEFAULT user:default;
+DEFINE FIELD IF NOT EXISTS tenant ON source_embedding TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE source_embedding SET owner = user:default WHERE owner = NONE;
+UPDATE source_embedding SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS owner ON source_insight TYPE option<record<user>> DEFAULT user:default;
+DEFINE FIELD IF NOT EXISTS tenant ON source_insight TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE source_insight SET owner = user:default WHERE owner = NONE;
+UPDATE source_insight SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS owner ON note TYPE option<record<user>> DEFAULT user:default;
+DEFINE FIELD IF NOT EXISTS tenant ON note TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE note SET owner = user:default WHERE owner = NONE;
+UPDATE note SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS owner ON chat_session TYPE option<record<user>> DEFAULT user:default;
+DEFINE FIELD IF NOT EXISTS tenant ON chat_session TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE chat_session SET owner = user:default WHERE owner = NONE;
+UPDATE chat_session SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS owner ON episode TYPE option<record<user>> DEFAULT user:default;
+DEFINE FIELD IF NOT EXISTS tenant ON episode TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE episode SET owner = user:default WHERE owner = NONE;
+UPDATE episode SET tenant = tenant:default WHERE tenant = NONE;
+
+-- tenant-only scoped entities
+
+DEFINE FIELD IF NOT EXISTS tenant ON credential TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE credential SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS tenant ON model TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE model SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS tenant ON transformation TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE transformation SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS tenant ON episode_profile TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE episode_profile SET tenant = tenant:default WHERE tenant = NONE;
+
+DEFINE FIELD IF NOT EXISTS tenant ON speaker_profile TYPE option<record<tenant>> DEFAULT tenant:default;
+UPDATE speaker_profile SET tenant = tenant:default WHERE tenant = NONE;

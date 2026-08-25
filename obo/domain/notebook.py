@@ -15,6 +15,7 @@ from obo.exceptions import DatabaseOperationError, InvalidInputError
 
 class Notebook(ObjectModel):
     table_name: ClassVar[str] = "notebook"
+    scope: ClassVar[Literal["owner"]] = "owner"
     name: str
     description: str
     archived: Optional[bool] = False
@@ -322,6 +323,7 @@ class Asset(BaseModel):
 
 class SourceEmbedding(ObjectModel):
     table_name: ClassVar[str] = "source_embedding"
+    scope: ClassVar[Literal["owner"]] = "owner"
     content: str
 
     async def get_source(self) -> "Source":
@@ -341,6 +343,7 @@ class SourceEmbedding(ObjectModel):
 
 class SourceInsight(ObjectModel):
     table_name: ClassVar[str] = "source_insight"
+    scope: ClassVar[Literal["owner"]] = "owner"
     insight_type: str
     content: str
 
@@ -403,6 +406,7 @@ class Source(ObjectModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     table_name: ClassVar[str] = "source"
+    scope: ClassVar[Literal["owner"]] = "owner"
     asset: Optional[Asset] = None
     title: Optional[str] = None
     topics: Optional[List[str]] = Field(default_factory=list)
@@ -682,6 +686,7 @@ class Source(ObjectModel):
 
 class Note(ObjectModel):
     table_name: ClassVar[str] = "note"
+    scope: ClassVar[Literal["owner"]] = "owner"
     title: Optional[str] = None
     note_type: Optional[Literal["human", "ai"]] = None
     content: Optional[str] = None
@@ -749,6 +754,7 @@ class Note(ObjectModel):
 
 class ChatSession(ObjectModel):
     table_name: ClassVar[str] = "chat_session"
+    scope: ClassVar[Literal["owner"]] = "owner"
     nullable_fields: ClassVar[set[str]] = {"model_override"}
     title: Optional[str] = None
     model_override: Optional[str] = None

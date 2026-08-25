@@ -15,7 +15,7 @@ Usage:
     await cred.save()
 """
 
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Literal, Optional
 
 from loguru import logger
 from pydantic import SecretStr, model_validator
@@ -34,6 +34,7 @@ class Credential(ObjectModel):
     """
 
     table_name: ClassVar[str] = "credential"
+    scope: ClassVar[Literal["tenant"]] = "tenant"
     nullable_fields: ClassVar[set[str]] = {
         "api_key",
         "base_url",
@@ -143,10 +144,13 @@ class Credential(ObjectModel):
     @classmethod
     async def get_by_provider(cls, provider: str) -> List["Credential"]:
         """Get all credentials for a provider."""
-        results = await repo_query(
-            "SELECT * FROM credential WHERE string::lowercase(provider) = string::lowercase($provider) ORDER BY created ASC",
-            {"provider": provider},
+        bind_vars: Dict[str, Any] = {"provider": provider}
+        query = cls._apply_scope(
+            "SELECT * FROM credential WHERE string::lowercase(provider) = string::lowercase($provider)",
+            bind_vars,
         )
+        query += " ORDER BY created ASC"
+        results = await repo_query(query, bind_vars)
         credentials = []
         for row in results:
             try:
@@ -175,12 +179,12 @@ class Credential(ObjectModel):
     @classmethod
     async def get_all(cls, order_by=None) -> List["Credential"]:
         """Override get_all() to handle api_key decryption with per-row error handling."""
+        bind_vars: Dict[str, Any] = {}
+        query = cls._apply_scope(f"SELECT * FROM {cls.table_name}", bind_vars)
         if order_by:
             validated_order_by = cls._validate_order_by(order_by)
-            query = f"SELECT * FROM {cls.table_name} ORDER BY {validated_order_by}"
-        else:
-            query = f"SELECT * FROM {cls.table_name}"
-        results = await repo_query(query, {})
+            query += f" ORDER BY {validated_order_by}"
+        results = await repo_query(query, bind_vars)
         credentials = []
         for row in results:
             try:
@@ -261,7 +265,7 @@ class Credential(ObjectModel):
                 config.pop(key, None)
         data["config"] = config or None
 
-        return data
+        return self._convert_scope_ids(data)
 
     async def save(self) -> None:
         """Save credential, handling api_key re-hydration after DB round-trip."""

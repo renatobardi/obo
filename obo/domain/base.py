@@ -1,6 +1,18 @@
 import re
 from datetime import datetime
-from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from loguru import logger
 from pydantic import (
@@ -20,6 +32,11 @@ from obo.database.repository import (
     repo_update,
     repo_upsert,
 )
+from obo.domain.tenancy import (
+    get_current_tenant,
+    get_current_user,
+    scoped_record_id,
+)
 from obo.exceptions import (
     DatabaseOperationError,
     InvalidInputError,
@@ -33,8 +50,46 @@ class ObjectModel(BaseModel):
     id: Optional[str] = None
     table_name: ClassVar[str] = ""
     nullable_fields: ClassVar[set[str]] = set()  # Fields that can be saved as None
+    # "none": no tenant/owner scoping (default - opt in explicitly).
+    # "tenant": shared within a tenant (e.g. Credential) - filtered/stamped by tenant only.
+    # "owner": private to one user within their tenant (e.g. Notebook) - filtered/stamped by both.
+    scope: ClassVar[Literal["none", "tenant", "owner"]] = "none"
     created: Optional[datetime] = None
     updated: Optional[datetime] = None
+    owner: Optional[str] = None
+    tenant: Optional[str] = None
+
+    @classmethod
+    def _scope_conditions(cls) -> Tuple[List[str], Dict[str, Any]]:
+        """SurrealQL WHERE conditions + bind vars enforcing this class's scope.
+
+        Callers that build their own queries (instead of delegating to
+        get_all()/get()) must fold these in too, the same way order_by must
+        route through _validate_order_by().
+        """
+        conditions: List[str] = []
+        bind_vars: Dict[str, Any] = {}
+        if cls.scope in ("tenant", "owner"):
+            conditions.append("tenant = $__tenant")
+            bind_vars["__tenant"] = ensure_record_id(get_current_tenant())
+        if cls.scope == "owner":
+            conditions.append("owner = $__owner")
+            bind_vars["__owner"] = ensure_record_id(get_current_user())
+        return conditions, bind_vars
+
+    @classmethod
+    def _apply_scope(cls, query: str, bind_vars: Dict[str, Any]) -> str:
+        """Append this class's scope conditions to `query`, merging their
+        bind vars into `bind_vars` (mutated in place). Joins with AND if
+        `query` already has a WHERE clause, otherwise adds one - so this can
+        run before or after a caller's own WHERE condition.
+        """
+        conditions, scope_vars = cls._scope_conditions()
+        bind_vars.update(scope_vars)
+        if not conditions:
+            return query
+        joiner = " AND " if " WHERE " in query else " WHERE "
+        return query + joiner + " AND ".join(conditions)
 
     @classmethod
     def _validate_order_by(cls, order_by: str) -> str:
@@ -81,13 +136,13 @@ class ObjectModel(BaseModel):
                 raise InvalidInputError(
                     "get_all() must be called from a specific model class"
                 )
+            bind_vars: Dict[str, Any] = {}
+            query = cls._apply_scope(f"SELECT * FROM {table_name}", bind_vars)
             if order_by:
                 validated_order_by = cls._validate_order_by(order_by)
-                query = f"SELECT * FROM {table_name} ORDER BY {validated_order_by}"
-            else:
-                query = f"SELECT * FROM {table_name}"
+                query += f" ORDER BY {validated_order_by}"
 
-            result = await repo_query(query)
+            result = await repo_query(query, bind_vars)
             objects = []
             for obj in result:
                 try:
@@ -119,7 +174,9 @@ class ObjectModel(BaseModel):
                     raise InvalidInputError(f"No class found for table {table_name}")
                 target_class = cast(Type[T], found_class)
 
-            result = await repo_query("SELECT * FROM $id", {"id": ensure_record_id(id)})
+            bind_vars: Dict[str, Any] = {"id": ensure_record_id(id)}
+            query = target_class._apply_scope("SELECT * FROM $id", bind_vars)
+            result = await repo_query(query, bind_vars)
             if result:
                 return target_class(**result[0])
             else:
@@ -154,6 +211,14 @@ class ObjectModel(BaseModel):
         command after calling super().save().
         """
         try:
+            if self.id is None and self.__class__.scope in ("tenant", "owner"):
+                # Stamp only at creation - an existing record's ownership must
+                # not shift just because a later save() runs in another context.
+                if self.tenant is None:
+                    self.tenant = get_current_tenant()
+                if self.__class__.scope == "owner" and self.owner is None:
+                    self.owner = get_current_user()
+
             self.model_validate(self.model_dump(), strict=True)
             data = self._prepare_save_data()
             data["updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -194,8 +259,20 @@ class ObjectModel(BaseModel):
             logger.error(f"Error saving record: {e}")
             raise DatabaseOperationError(e)
 
+    def _convert_scope_ids(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Turn stamped owner/tenant strings into RecordIDs before they hit the DB.
+
+        Subclasses whose _prepare_save_data() doesn't delegate to
+        super() (e.g. Credential) must call this themselves.
+        """
+        if self.__class__.scope in ("tenant", "owner") and data.get("tenant"):
+            data["tenant"] = ensure_record_id(data["tenant"])
+        if self.__class__.scope == "owner" and data.get("owner"):
+            data["owner"] = ensure_record_id(data["owner"])
+        return data
+
     def _prepare_save_data(self) -> Dict[str, Any]:
-        data = self.model_dump()
+        data = self._convert_scope_ids(self.model_dump())
         return {
             key: value
             for key, value in data.items()
@@ -251,21 +328,29 @@ class RecordModel(BaseModel):
     auto_save: ClassVar[bool] = (
         False  # Default to False, can be overridden in subclasses
     )
-    _instances: ClassVar[Dict[str, "RecordModel"]] = {}  # Store instances by record_id
+    # Keyed by (class, tenant) - every RecordModel singleton is tenant-scoped,
+    # so the same class holds one cached instance per tenant.
+    _instances: ClassVar[Dict[Tuple[type, str], "RecordModel"]] = {}
+
+    @classmethod
+    def _current_scoped_id(cls) -> str:
+        """This class's actual DB record id for the current tenant context."""
+        return scoped_record_id(cls.record_id, get_current_tenant())
 
     def __new__(cls, **kwargs):
-        # If an instance already exists for this record_id, return it
-        if cls.record_id in cls._instances:
-            instance = cls._instances[cls.record_id]
+        # If an instance already exists for this (class, tenant), return it
+        key = (cls, get_current_tenant())
+        if key in cls._instances:
+            instance = cls._instances[key]
             # Update instance with any new kwargs if provided
             if kwargs:
-                for key, value in kwargs.items():
-                    setattr(instance, key, value)
+                for k, value in kwargs.items():
+                    setattr(instance, k, value)
             return instance
 
         # If no instance exists, create a new one
         instance = super().__new__(cls)
-        cls._instances[cls.record_id] = instance
+        cls._instances[key] = instance
         return instance
 
     def __init__(self, **kwargs):
@@ -286,7 +371,7 @@ class RecordModel(BaseModel):
         if not getattr(self, "_db_loaded", False):
             result = await repo_query(
                 "SELECT * FROM ONLY $record_id",
-                {"record_id": ensure_record_id(self.record_id)},
+                {"record_id": ensure_record_id(self.__class__._current_scoped_id())},
             )
 
             # Handle case where record doesn't exist yet
@@ -330,16 +415,17 @@ class RecordModel(BaseModel):
             if not str(field_info.annotation).startswith("typing.ClassVar")
         }
 
+        scoped_id = self.__class__._current_scoped_id()
         await repo_upsert(
             self.__class__.table_name
             if hasattr(self.__class__, "table_name")
             else "record",
-            self.record_id,
+            scoped_id,
             data,
         )
 
         result = await repo_query(
-            "SELECT * FROM $record_id", {"record_id": ensure_record_id(self.record_id)}
+            "SELECT * FROM $record_id", {"record_id": ensure_record_id(scoped_id)}
         )
         if result:
             for key, value in result[0].items():
@@ -352,9 +438,8 @@ class RecordModel(BaseModel):
 
     @classmethod
     def clear_instance(cls):
-        """Clear the singleton instance (useful for testing)"""
-        if cls.record_id in cls._instances:
-            del cls._instances[cls.record_id]
+        """Clear the singleton instance for the current tenant context (useful for testing)"""
+        cls._instances.pop((cls, get_current_tenant()), None)
 
     async def patch(self, model_dict: dict):
         """Update model attributes from dictionary and save"""

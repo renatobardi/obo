@@ -1,5 +1,5 @@
 import os
-from typing import Any, ClassVar, Dict, Optional, Sequence, Union
+from typing import Any, ClassVar, Dict, Literal, Optional, Sequence, Union
 
 from esperanto import (
     AIFactory,
@@ -54,6 +54,7 @@ async def _revalidate_config_urls(config: dict, provider: str) -> None:
 
 class Model(ObjectModel):
     table_name: ClassVar[str] = "model"
+    scope: ClassVar[Literal["tenant"]] = "tenant"
     nullable_fields: ClassVar[set[str]] = {"credential"}
     name: str
     provider: str
@@ -62,9 +63,9 @@ class Model(ObjectModel):
 
     @classmethod
     async def get_models_by_type(cls, model_type):
-        models = await repo_query(
-            "SELECT * FROM model WHERE type=$model_type;", {"model_type": model_type}
-        )
+        bind_vars: Dict[str, Any] = {"model_type": model_type}
+        query = cls._apply_scope("SELECT * FROM model WHERE type=$model_type", bind_vars)
+        models = await repo_query(query, bind_vars)
         return [Model(**model) for model in models]
 
     @classmethod
@@ -92,10 +93,13 @@ class Model(ObjectModel):
         if not ids:
             return grouped
         try:
-            result = await repo_query(
-                "SELECT id, name, provider FROM model WHERE id IN $model_ids",
-                {"model_ids": [ensure_record_id(mid) for mid in ids]},
+            bind_vars: Dict[str, Any] = {
+                "model_ids": [ensure_record_id(mid) for mid in ids]
+            }
+            query = cls._apply_scope(
+                "SELECT id, name, provider FROM model WHERE id IN $model_ids", bind_vars
             )
+            result = await repo_query(query, bind_vars)
         except Exception as e:
             logger.error(f"Error batch-fetching model display info: {e}")
             return grouped
@@ -109,10 +113,9 @@ class Model(ObjectModel):
     @classmethod
     async def get_by_credential(cls, credential_id: str):
         """Get all models linked to a specific credential."""
-        models = await repo_query(
-            "SELECT * FROM model WHERE credential=$cred_id;",
-            {"cred_id": ensure_record_id(credential_id)},
-        )
+        bind_vars: Dict[str, Any] = {"cred_id": ensure_record_id(credential_id)}
+        query = cls._apply_scope("SELECT * FROM model WHERE credential=$cred_id", bind_vars)
+        models = await repo_query(query, bind_vars)
         return [Model(**model) for model in models]
 
     def _prepare_save_data(self) -> Dict[str, Any]:
@@ -150,7 +153,7 @@ class DefaultModels(RecordModel):
         """Always fetch fresh defaults from database (override parent caching behavior)"""
         result = await repo_query(
             "SELECT * FROM ONLY $record_id",
-            {"record_id": ensure_record_id(cls.record_id)},
+            {"record_id": ensure_record_id(cls._current_scoped_id())},
         )
 
         if result:

@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar, Dict, Literal, Optional
 
 from pydantic import Field
 
@@ -8,6 +8,7 @@ from obo.domain.base import ObjectModel, RecordModel
 
 class Transformation(ObjectModel):
     table_name: ClassVar[str] = "transformation"
+    scope: ClassVar[Literal["tenant"]] = "tenant"
     nullable_fields: ClassVar[set[str]] = {"model_id"}
     name: str
     title: str
