@@ -1,6 +1,6 @@
 # PDR-001: Single-user first; new features must not preclude multi-user
 
-- **Status**: Accepted
+- **Status**: Superseded by [PDR-003](PDR-003-multitenant-firebase-auth.md)
 - **Date**: 2026-07
 - **Related**: [VISION.md](../../../VISION.md) (Current Posture)
 
