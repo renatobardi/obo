@@ -51,5 +51,6 @@ What this makes easier, what it makes harder, what to watch. (bullets)
 | [ADR-007](ADR-007-optin-runtimes.md) | Heavy extraction runtimes (Docling, Crawl4AI local) are opt-in, installed at startup | Accepted |
 | [ADR-008](ADR-008-api-url-same-origin-default.md) | The frontend defaults to same-origin API calls, never guesses a host from request headers | Accepted |
 | [ADR-009](ADR-009-kubo-monochrome-palette.md) | Content-type colors go monochrome stone; color is reserved for meaning | Accepted |
-| [PDR-001](PDR-001-single-user-first.md) | Single-user first; don't preclude multi-user | Accepted |
+| [PDR-001](PDR-001-single-user-first.md) | Single-user first; don't preclude multi-user | Superseded by PDR-003 |
 | [PDR-002](PDR-002-provider-agnostic-core.md) | Provider-agnostic core by default | Accepted |
+| [PDR-003](PDR-003-multitenant-firebase-auth.md) | Multitenant with Firebase Auth (Google + email) | Accepted |

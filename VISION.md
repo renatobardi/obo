@@ -48,7 +48,7 @@ A feature request that conflicts with the IS NOT list or a principle gets closed
 
 ## Current Posture
 
-> **Reviewed: 2026-07.** This section is expected to change. Updating it is not a reversal — it's a phase change, recorded with a short PDR and an edit here.
+> **Reviewed: 2026-08.** This section is expected to change. Updating it is not a reversal — it's a phase change, recorded with a short PDR and an edit here.
 
 **The phase we're in: get the basics working well for everyone before expanding.** Priority goes to making the core experience (sources, chat, search, notes, podcasts) solid across the full provider matrix and deployment surface, ahead of new product surfaces.
 
@@ -56,7 +56,7 @@ A feature request that conflicts with the IS NOT list or a principle gets closed
 
 Decisions about the future we haven't made yet — recorded as "which door to keep open":
 
-- **Single-user first, multi-user compatible.** Obo is a single-user tool today, but multi-user is under active consideration. New features must not gratuitously preclude multi-user (schema, auth, data scoping) ([PDR-001](docs/7-DEVELOPMENT/decisions/PDR-001-single-user-first.md)).
+- **Multitenant, Firebase-authenticated.** The multi-user vision call has been made: Obo adopts a tenant model (an account with N users), authenticated via Firebase (Google + email) in multitenant mode — alongside the existing single-password mode, unchanged, for self-hosters who don't want the Google dependency ([PDR-003](docs/7-DEVELOPMENT/decisions/PDR-003-multitenant-firebase-auth.md), superseding [PDR-001](docs/7-DEVELOPMENT/decisions/PDR-001-single-user-first.md)). The architecture is decided; implementation is not yet built.
 - **Portable by default.** Provider-exclusive capabilities (including paid-only ones) are on the table for the future — deliberately, via PDR, never by accident ([PDR-002](docs/7-DEVELOPMENT/decisions/PDR-002-provider-agnostic-core.md)).
 
 ### Horizon
@@ -66,7 +66,6 @@ The big clusters under consideration — direction, not roadmap; no dates.
 | Cluster | What it is |
 |---|---|
 | **Platform v-next** | SurrealDB v3 migration, possible frontend/backend Docker image split, possible Surreal Commands → Celery move — evaluated together as one coordinated breaking change |
-| **Multi-user** | Deep platform redesign: auth, data scoping, what "multi-user" means for a self-hosted tool |
 | **Content modes & artifacts** | The output side: generated artifacts, videos, explainers, presentations, mind maps — as one coherent product surface, not a pile of features |
 | **Agents operating Obo** | Role inversion via MCP: AI agents use Obo on the user's behalf — the platform becomes the research memory of agents, not just a UI |
 
