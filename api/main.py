@@ -32,6 +32,7 @@ from api.routers import (
     embedding_rebuild,
     episode_profiles,
     insights,
+    invites,
     languages,
     models,
     notebooks,
@@ -43,6 +44,7 @@ from api.routers import (
     source_chat,
     sources,
     speaker_profiles,
+    tenants,
     transformations,
 )
 from api.routers import commands as commands_router
@@ -408,6 +410,8 @@ app.include_router(credentials.router, prefix="/api", tags=["credentials"])
 app.include_router(providers.router, prefix="/api", tags=["providers"])
 app.include_router(capabilities.router, prefix="/api", tags=["capabilities"])
 app.include_router(languages.router, prefix="/api", tags=["languages"])
+app.include_router(invites.router, prefix="/api", tags=["invites"])
+app.include_router(tenants.router, prefix="/api", tags=["tenants"])
 
 
 @app.get("/")

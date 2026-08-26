@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { getConfig } from '@/lib/config'
@@ -22,10 +22,11 @@ export function LoginForm() {
   const [email, setEmail] = useState('')
   const [emailFormMode, setEmailFormMode] = useState<'signin' | 'signup'>('signin')
   const { login, loginWithGoogle, loginWithEmail, signUpWithEmail, isLoading, error, authMode } = useAuth()
-  const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated } = useAuthStore()
+  const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated, setCompleteSignupToken } = useAuthStore()
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [configInfo, setConfigInfo] = useState<{ apiUrl: string; version: string; buildTime: string } | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Load config info for debugging
   useEffect(() => {
@@ -38,6 +39,21 @@ export function LoginForm() {
     }).catch(err => {
       console.error('Failed to load config:', err)
     })
+  }, [])
+
+  // Capture an optional invite token/email from the URL on mount so the
+  // upcoming complete-signup call can join an existing tenant.
+  useEffect(() => {
+    const token = searchParams.get('token')
+    const inviteEmail = searchParams.get('email')
+    if (token) {
+      setCompleteSignupToken(token)
+    }
+    if (inviteEmail) {
+      setEmail(inviteEmail)
+      setEmailFormMode('signup')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Check if authentication is required on mount

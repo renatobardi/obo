@@ -35,4 +35,7 @@ export const QUERY_KEYS = {
   episodeProfiles: ['podcasts', 'episode-profiles'] as const,
   speakerProfiles: ['podcasts', 'speaker-profiles'] as const,
   languages: ['languages'] as const,
+  invites: ['invites'] as const,
+  members: ['members'] as const,
+  invitePreview: (token: string) => ['invites', 'preview', token] as const,
 }

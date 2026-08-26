@@ -255,3 +255,25 @@ export interface RecentlyViewedResponse {
   title: string
   last_viewed_at: string
 }
+
+export interface Invite {
+  id: string
+  email: string
+  token: string
+  expires_at: string
+  revoked: boolean
+  consumed: boolean
+}
+
+export interface Member {
+  id: string
+  email: string | null
+}
+
+export interface CreateInviteRequest {
+  email: string
+}
+
+export interface CompleteSignupRequest {
+  invite_token?: string | null
+}

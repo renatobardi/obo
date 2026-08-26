@@ -1,0 +1,5 @@
+-- Migration 26 rollback: remove invites and user email
+
+REMOVE INDEX IF EXISTS invite_token ON invite;
+REMOVE TABLE IF EXISTS invite;
+REMOVE FIELD IF EXISTS email ON user;

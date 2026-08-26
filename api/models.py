@@ -1,6 +1,13 @@
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 # Notebook models
@@ -794,3 +801,30 @@ class NotebookDeleteResponse(BaseModel):
     deleted_chat_sessions: int = Field(
         ..., description="Number of chat sessions deleted"
     )
+
+
+# Invite / member models
+class CreateInviteRequest(BaseModel):
+    email: EmailStr
+
+
+class InviteRedeemRequest(BaseModel):
+    invite_token: Optional[str] = None
+
+
+class InviteResponse(BaseModel):
+    id: str
+    email: str
+    token: str
+    expires_at: str
+    revoked: bool
+    consumed: bool
+
+
+class CreateInviteResponse(InviteResponse):
+    pass
+
+
+class MemberResponse(BaseModel):
+    id: str
+    email: Optional[str] = None

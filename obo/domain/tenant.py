@@ -8,7 +8,7 @@ own (unrelated but same-shaped) purpose: a Tenant's `owner` is the User that
 owns it; a User's `tenant` is the Tenant it belongs to.
 """
 
-from typing import Any, ClassVar, Dict
+from typing import Any, ClassVar, Dict, Optional
 
 from surrealdb import RecordID
 
@@ -34,6 +34,7 @@ class User(ObjectModel):
     """
 
     table_name: ClassVar[str] = "user"
+    email: Optional[str] = None
 
     def _prepare_save_data(self) -> Dict[str, Any]:
         data = super()._prepare_save_data()
@@ -42,7 +43,9 @@ class User(ObjectModel):
         return data
 
     @classmethod
-    async def provision(cls, uid: str, tenant_id: str) -> "User":
+    async def provision(
+        cls, uid: str, tenant_id: str, email: Optional[str] = None
+    ) -> "User":
         """Create (or idempotently return) the user row for a Firebase UID.
 
         Builds the RecordID directly from the raw uid instead of going
@@ -52,9 +55,12 @@ class User(ObjectModel):
         collide with.
         """
         user_id = RecordID("user", uid)
+        data: Dict[str, Any] = {"tenant": ensure_record_id(tenant_id)}
+        if email is not None:
+            data["email"] = email.strip().lower()
         result = await repo_query(
             "UPSERT $target MERGE $data;",
-            {"target": user_id, "data": {"tenant": ensure_record_id(tenant_id)}},
+            {"target": user_id, "data": data},
         )
         row = result[0] if isinstance(result, list) else result
         return cls(**row)

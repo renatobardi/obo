@@ -1,0 +1,19 @@
+-- Migration 26: tenant invites (#29)
+-- Link-based, email-bound, 7-day-expiry invites to join an existing tenant,
+-- plus email storage on user rows for member display.
+
+DEFINE TABLE IF NOT EXISTS invite SCHEMAFULL;
+DEFINE FIELD IF NOT EXISTS email ON invite TYPE string;
+DEFINE FIELD IF NOT EXISTS token ON invite TYPE string;
+DEFINE FIELD IF NOT EXISTS tenant ON invite TYPE record<tenant>;
+DEFINE FIELD IF NOT EXISTS expires_at ON invite TYPE datetime;
+DEFINE FIELD IF NOT EXISTS revoked ON invite TYPE bool DEFAULT false;
+DEFINE FIELD IF NOT EXISTS consumed ON invite TYPE bool DEFAULT false;
+DEFINE FIELD IF NOT EXISTS consumed_at ON invite TYPE option<datetime>;
+DEFINE FIELD IF NOT EXISTS consumed_by ON invite TYPE option<record<user>>;
+DEFINE FIELD IF NOT EXISTS created ON invite DEFAULT time::now() VALUE $before OR time::now();
+DEFINE FIELD IF NOT EXISTS updated ON invite DEFAULT time::now() VALUE time::now();
+
+DEFINE INDEX IF NOT EXISTS invite_token ON invite FIELDS token UNIQUE;
+
+DEFINE FIELD IF NOT EXISTS email ON user TYPE option<string>;
