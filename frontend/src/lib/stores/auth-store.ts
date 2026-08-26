@@ -72,6 +72,7 @@ function mapEmailAuthError(error: unknown): string {
 interface AuthState {
   isAuthenticated: boolean
   token: string | null
+  completeSignupToken: string | null
   isLoading: boolean
   error: string | null
   lastAuthCheck: number | null
@@ -80,6 +81,7 @@ interface AuthState {
   authRequired: boolean | null
   authMode: AuthMode
   setHasHydrated: (state: boolean) => void
+  setCompleteSignupToken: (token: string | null) => void
   checkAuthRequired: () => Promise<boolean>
   login: (password: string) => Promise<boolean>
   loginWithGoogle: () => Promise<boolean>
@@ -107,13 +109,18 @@ export const useAuthStore = create<AuthState>()(
 
           // Deliberately raw fetch (not apiClient): this call establishes
           // the token, so it must not go through interceptors that assume
-          // one already exists.
+          // one already exists. Include an optional invite token so a new
+          // identity can join an existing tenant instead of self-serving one.
+          const inviteToken = get().completeSignupToken
           const response = await fetch(`${apiUrl}/api/auth/complete-signup`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${idToken}`,
               'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+              invite_token: inviteToken || undefined,
+            })
           })
 
           if (response.ok) {
@@ -132,6 +139,7 @@ export const useAuthStore = create<AuthState>()(
       return {
         isAuthenticated: false,
         token: null,
+        completeSignupToken: null,
         isLoading: false,
         error: null,
         lastAuthCheck: null,
@@ -142,6 +150,10 @@ export const useAuthStore = create<AuthState>()(
 
         setHasHydrated: (state: boolean) => {
           set({ hasHydrated: state })
+        },
+
+        setCompleteSignupToken: (token: string | null) => {
+          set({ completeSignupToken: token })
         },
 
         checkAuthRequired: async () => {

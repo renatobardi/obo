@@ -84,7 +84,10 @@ class PasswordAuthMiddleware(BaseHTTPMiddleware):
     """
 
     def __init__(
-        self, app: ASGIApp, excluded_paths: Optional[list[str]] = None
+        self,
+        app: ASGIApp,
+        excluded_paths: Optional[list[str]] = None,
+        excluded_prefixes: Optional[list[str]] = None,
     ) -> None:
         super().__init__(app)
         self.password = get_secret_from_env("OBO_PASSWORD")
@@ -94,6 +97,9 @@ class PasswordAuthMiddleware(BaseHTTPMiddleware):
             "/docs",
             "/openapi.json",
             "/redoc",
+        ]
+        self.excluded_prefixes: list[str] = excluded_prefixes or [
+            "/api/invites/preview/"
         ]
 
     async def dispatch(
@@ -105,6 +111,13 @@ class PasswordAuthMiddleware(BaseHTTPMiddleware):
 
         # Skip authentication for excluded paths
         if request.url.path in self.excluded_paths:
+            return await call_next(request)
+
+        # Skip authentication for excluded path prefixes
+        if any(
+            request.url.path.startswith(prefix)
+            for prefix in self.excluded_prefixes
+        ):
             return await call_next(request)
 
         # Skip authentication for CORS preflight requests (OPTIONS)
@@ -165,6 +178,7 @@ class FirebaseAuthMiddleware(BaseHTTPMiddleware):
         self,
         app: ASGIApp,
         excluded_paths: Optional[list[str]] = None,
+        excluded_prefixes: Optional[list[str]] = None,
         complete_signup_path: str = COMPLETE_SIGNUP_PATH,
     ) -> None:
         super().__init__(app)
@@ -177,12 +191,22 @@ class FirebaseAuthMiddleware(BaseHTTPMiddleware):
             "/redoc",
             "/api/auth/status",
         ]
+        self.excluded_prefixes: list[str] = excluded_prefixes or [
+            "/api/invites/preview/"
+        ]
         self.complete_signup_path = complete_signup_path
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        if request.url.path in self.excluded_paths or request.method == "OPTIONS":
+        if (
+            request.url.path in self.excluded_paths
+            or request.method == "OPTIONS"
+            or any(
+                request.url.path.startswith(prefix)
+                for prefix in self.excluded_prefixes
+            )
+        ):
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")

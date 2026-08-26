@@ -41,6 +41,7 @@ import {
   Plus,
   Wrench,
   Command,
+  Users,
 } from 'lucide-react'
 
 const getNavigation = (t: TFunction) => [
@@ -69,6 +70,7 @@ const getNavigation = (t: TFunction) => [
       { name: t('navigation.models'), href: '/settings/api-keys', icon: Bot, iconClass: undefined },
       { name: t('navigation.transformations'), href: '/transformations', icon: Shuffle, iconClass: undefined },
       { name: t('navigation.settings'), href: '/settings', icon: Settings, iconClass: undefined },
+      { name: t('navigation.members'), href: '/settings/members', icon: Users, iconClass: undefined },
       { name: t('navigation.advanced'), href: '/advanced', icon: Wrench, iconClass: undefined },
     ],
   },

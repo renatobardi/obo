@@ -232,6 +232,7 @@ export const enUS = {
     language: "Toggle language",
     theme: "Theme",
     ask: "Ask",
+    members: "Members",
   },
   notebooks: {
     title: "Notebooks",
@@ -980,6 +981,28 @@ export const enUS = {
     migrationDescription: "{{count}} provider(s) have API keys set via environment variables. Migrate them to the database for easier management.",
     goToSettings: "Go to Settings",
     viewDocs: "View docs",
+  },
+  members: {
+    inviteByEmail: "Invite by email",
+    emailPlaceholder: "colleague@example.com",
+    sendInvite: "Send invite",
+    pendingInvites: "Pending invites",
+    noPendingInvites: "No pending invites",
+    expires: "Expires {{date}}",
+    linkCopied: "Invite link copied to clipboard",
+    revokeSuccess: "Invite revoked",
+    members: "Members",
+    noMembers: "No members yet",
+    remove: "Remove",
+    removeSuccess: "Member removed",
+    failedToLoad: "Failed to load members",
+    inviteSent: "Invite sent",
+  },
+  join: {
+    title: "You've been invited",
+    description: "Sign in or create an account with {{email}} to join this workspace.",
+    continue: "Continue to sign in",
+    invalid: "This invite is no longer valid.",
   },
 }
 
