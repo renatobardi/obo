@@ -35,8 +35,14 @@ vi.mock('@/lib/config', () => ({
 async function loadStore() {
   vi.stubGlobal('localStorage', createMemoryStorage())
   vi.resetModules()
-  const [{ signInWithGoogle, signInWithEmail, signUpWithEmail }, { useAuthStore }] =
-    await Promise.all([import('@/lib/firebase'), import('./auth-store')])
+  // Sequential, not Promise.all: auth-store.ts itself statically imports
+  // '@/lib/firebase', so resolving it here first guarantees both this file
+  // and the store see the same post-resetModules mock instance. Racing the
+  // two imports concurrently was observed to occasionally hand the store a
+  // different (unconfigured) mock function than the one .mockResolvedValue()
+  // was called on, flaking the assertions below (#28 CI).
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = await import('@/lib/firebase')
+  const { useAuthStore } = await import('./auth-store')
   return {
     useAuthStore,
     mockSignInWithGoogle: vi.mocked(signInWithGoogle),
