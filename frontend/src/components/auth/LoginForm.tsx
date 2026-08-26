@@ -13,6 +13,9 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { OboMark } from '@/components/layout/OboMark'
 
+type ConfigInfo = { apiUrl: string; version: string; buildTime: string } | null
+type Translate = (key: string) => string
+
 export function LoginForm() {
   const { t, language } = useTranslation()
   const [password, setPassword] = useState('')
@@ -83,48 +86,12 @@ export function LoginForm() {
   // If we still don't know if auth is required (connection error), show error
   if (authRequired === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>{t('common.connectionError')}</CardTitle>
-            <CardDescription>
-              {t('common.unableToConnect')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-2 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  {error || t('auth.connectErrorHint')}
-                </div>
-              </div>
-
-              {configInfo && (
-                <div className="space-y-2 text-xs text-muted-foreground border-t pt-3">
-                  <div className="font-medium">{t('common.diagnosticInfo')}:</div>
-                  <div className="space-y-1 font-mono">
-                    <div>{t('common.version')}: {configInfo.version}</div>
-                    <div>{t('common.built')}: {new Date(configInfo.buildTime).toLocaleString(language === 'zh-CN' ? 'zh-CN' : language === 'zh-TW' ? 'zh-TW' : 'en-US')}</div>
-                    <div className="break-all">{t('common.apiUrl')}: {configInfo.apiUrl}</div>
-                    <div className="break-all">{t('common.frontendUrl')}: {typeof window !== 'undefined' ? window.location.href : 'N/A'}</div>
-                  </div>
-                  <div className="text-xs pt-2">
-                    {t('common.checkConsoleLogs')}
-                  </div>
-                </div>
-              )}
-
-              <Button
-                onClick={() => window.location.reload()}
-                className="w-full"
-              >
-                {t('common.retryConnection')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ConnectionErrorCard
+        error={error}
+        configInfo={configInfo}
+        language={language}
+        t={t}
+      />
     )
   }
 
@@ -179,118 +146,254 @@ export function LoginForm() {
         </CardHeader>
         <CardContent>
           {authMode === 'firebase' ? (
-            <div className="space-y-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-              >
-                <GoogleIcon className="h-4 w-4" />
-                {isLoading ? t('auth.signingIn') : t('auth.signInWithGoogle')}
-              </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">{t('auth.orDivider')}</span>
-                </div>
-              </div>
-
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
-                <Input
-                  type="email"
-                  placeholder={t('auth.emailPlaceholder')}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                />
-                <Input
-                  type="password"
-                  placeholder={t('auth.passwordPlaceholder')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                />
-
-                <Button
-                  type="submit"
-                  variant="outline"
-                  className="w-full"
-                  disabled={isLoading || !email.trim() || !password.trim()}
-                >
-                  {isLoading
-                    ? t('auth.signingIn')
-                    : emailFormMode === 'signup'
-                      ? t('auth.createAccount')
-                      : t('auth.signIn')}
-                </Button>
-              </form>
-
-              <button
-                type="button"
-                className="w-full text-center text-sm text-muted-foreground underline"
-                onClick={() =>
-                  setEmailFormMode((mode) => (mode === 'signup' ? 'signin' : 'signup'))
-                }
-              >
-                {emailFormMode === 'signup' ? t('auth.switchToSignIn') : t('auth.switchToSignUp')}
-              </button>
-
-              {error && (
-                <div className="flex items-center gap-2 text-destructive text-sm">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
-
-              {configInfo && (
-                <div className="text-xs text-center text-muted-foreground pt-2 border-t">
-                  <div>{t('common.version')} {configInfo.version}</div>
-                  <div className="font-mono text-[10px]">{configInfo.apiUrl}</div>
-                </div>
-              )}
-            </div>
+            <FirebaseSignInForm
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              emailFormMode={emailFormMode}
+              setEmailFormMode={setEmailFormMode}
+              isLoading={isLoading}
+              error={error}
+              configInfo={configInfo}
+              onGoogleSignIn={handleGoogleSignIn}
+              onEmailSubmit={handleEmailSubmit}
+              t={t}
+            />
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Input
-                  type="password"
-                  placeholder={t('auth.passwordPlaceholder')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
-
-              {error && (
-                <div className="flex items-center gap-2 text-destructive text-sm">
-                  <AlertCircle className="h-4 w-4" />
-                  {error}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading || !password.trim()}
-              >
-                {isLoading ? t('auth.signingIn') : t('auth.signIn')}
-              </Button>
-
-              {configInfo && (
-                <div className="text-xs text-center text-muted-foreground pt-2 border-t">
-                  <div>{t('common.version')} {configInfo.version}</div>
-                  <div className="font-mono text-[10px]">{configInfo.apiUrl}</div>
-                </div>
-              )}
-            </form>
+            <PasswordSignInForm
+              password={password}
+              setPassword={setPassword}
+              isLoading={isLoading}
+              error={error}
+              configInfo={configInfo}
+              onSubmit={handleSubmit}
+              t={t}
+            />
           )}
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function ConnectionErrorCard({
+  error,
+  configInfo,
+  language,
+  t
+}: {
+  error: string | null
+  configInfo: ConfigInfo
+  language: string
+  t: Translate
+}) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle>{t('common.connectionError')}</CardTitle>
+          <CardDescription>
+            {t('common.unableToConnect')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start gap-2 text-destructive text-sm">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                {error || t('auth.connectErrorHint')}
+              </div>
+            </div>
+
+            {configInfo && (
+              <div className="space-y-2 text-xs text-muted-foreground border-t pt-3">
+                <div className="font-medium">{t('common.diagnosticInfo')}:</div>
+                <div className="space-y-1 font-mono">
+                  <div>{t('common.version')}: {configInfo.version}</div>
+                  <div>{t('common.built')}: {new Date(configInfo.buildTime).toLocaleString(language === 'zh-CN' ? 'zh-CN' : language === 'zh-TW' ? 'zh-TW' : 'en-US')}</div>
+                  <div className="break-all">{t('common.apiUrl')}: {configInfo.apiUrl}</div>
+                  <div className="break-all">{t('common.frontendUrl')}: {typeof window !== 'undefined' ? window.location.href : 'N/A'}</div>
+                </div>
+                <div className="text-xs pt-2">
+                  {t('common.checkConsoleLogs')}
+                </div>
+              </div>
+            )}
+
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full"
+            >
+              {t('common.retryConnection')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function DebugFooter({ configInfo, t }: { configInfo: ConfigInfo; t: Translate }) {
+  if (!configInfo) {
+    return null
+  }
+  return (
+    <div className="text-xs text-center text-muted-foreground pt-2 border-t">
+      <div>{t('common.version')} {configInfo.version}</div>
+      <div className="font-mono text-[10px]">{configInfo.apiUrl}</div>
+    </div>
+  )
+}
+
+function AuthErrorMessage({ error }: { error: string | null }) {
+  if (!error) {
+    return null
+  }
+  return (
+    <div className="flex items-center gap-2 text-destructive text-sm">
+      <AlertCircle className="h-4 w-4" />
+      {error}
+    </div>
+  )
+}
+
+function PasswordSignInForm({
+  password,
+  setPassword,
+  isLoading,
+  error,
+  configInfo,
+  onSubmit,
+  t
+}: {
+  password: string
+  setPassword: (value: string) => void
+  isLoading: boolean
+  error: string | null
+  configInfo: ConfigInfo
+  onSubmit: (e: React.FormEvent) => void
+  t: Translate
+}) {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div>
+        <Input
+          type="password"
+          placeholder={t('auth.passwordPlaceholder')}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoading}
+        />
+      </div>
+
+      <AuthErrorMessage error={error} />
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isLoading || !password.trim()}
+      >
+        {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+      </Button>
+
+      <DebugFooter configInfo={configInfo} t={t} />
+    </form>
+  )
+}
+
+function emailSubmitLabel(isLoading: boolean, emailFormMode: 'signin' | 'signup', t: Translate) {
+  if (isLoading) {
+    return t('auth.signingIn')
+  }
+  return emailFormMode === 'signup' ? t('auth.createAccount') : t('auth.signIn')
+}
+
+function FirebaseSignInForm({
+  email,
+  setEmail,
+  password,
+  setPassword,
+  emailFormMode,
+  setEmailFormMode,
+  isLoading,
+  error,
+  configInfo,
+  onGoogleSignIn,
+  onEmailSubmit,
+  t
+}: {
+  email: string
+  setEmail: (value: string) => void
+  password: string
+  setPassword: (value: string) => void
+  emailFormMode: 'signin' | 'signup'
+  setEmailFormMode: (updater: (mode: 'signin' | 'signup') => 'signin' | 'signup') => void
+  isLoading: boolean
+  error: string | null
+  configInfo: ConfigInfo
+  onGoogleSignIn: () => void
+  onEmailSubmit: (e: React.FormEvent) => void
+  t: Translate
+}) {
+  return (
+    <div className="space-y-4">
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={onGoogleSignIn}
+        disabled={isLoading}
+      >
+        <GoogleIcon className="h-4 w-4" />
+        {isLoading ? t('auth.signingIn') : t('auth.signInWithGoogle')}
+      </Button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-2 text-muted-foreground">{t('auth.orDivider')}</span>
+        </div>
+      </div>
+
+      <form onSubmit={onEmailSubmit} className="space-y-4">
+        <Input
+          type="email"
+          placeholder={t('auth.emailPlaceholder')}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isLoading}
+        />
+        <Input
+          type="password"
+          placeholder={t('auth.passwordPlaceholder')}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoading}
+        />
+
+        <Button
+          type="submit"
+          variant="outline"
+          className="w-full"
+          disabled={isLoading || !email.trim() || !password.trim()}
+        >
+          {emailSubmitLabel(isLoading, emailFormMode, t)}
+        </Button>
+      </form>
+
+      <button
+        type="button"
+        className="w-full text-center text-sm text-muted-foreground underline"
+        onClick={() => setEmailFormMode((mode) => (mode === 'signup' ? 'signin' : 'signup'))}
+      >
+        {emailFormMode === 'signup' ? t('auth.switchToSignIn') : t('auth.switchToSignUp')}
+      </button>
+
+      <AuthErrorMessage error={error} />
+      <DebugFooter configInfo={configInfo} t={t} />
     </div>
   )
 }
