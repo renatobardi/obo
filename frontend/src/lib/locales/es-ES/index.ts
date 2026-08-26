@@ -210,6 +210,11 @@ export const esES = {
     signIn: "Iniciar sesión",
     signInWithGoogle: "Iniciar sesión con Google",
     connectErrorHint: "No se puede conectar al servidor. Por favor, verifica si la API está funcionando.",
+    emailPlaceholder: "Correo electrónico",
+    orDivider: "o",
+    createAccount: "Crear cuenta",
+    switchToSignUp: "¿No tienes cuenta? Crea una",
+    switchToSignIn: "¿Ya tienes cuenta? Inicia sesión",
   },
   navigation: {
     collect: "Recopilar",

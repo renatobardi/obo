@@ -210,6 +210,11 @@ export const ruRU = {
     signIn: "Войти",
     signInWithGoogle: "Войти через Google",
     connectErrorHint: "Не удаётся подключиться к серверу. Проверьте, запущен ли API.",
+    emailPlaceholder: "Эл. почта",
+    orDivider: "или",
+    createAccount: "Создать аккаунт",
+    switchToSignUp: "Нет аккаунта? Создать",
+    switchToSignIn: "Уже есть аккаунт? Войти",
   },
   navigation: {
     collect: "Собрать",

@@ -208,6 +208,11 @@ export const enUS = {
     signIn: "Sign In",
     signInWithGoogle: "Sign in with Google",
     connectErrorHint: "Unable to connect to server. Please check if the API is running.",
+    emailPlaceholder: "Email",
+    orDivider: "or",
+    createAccount: "Create Account",
+    switchToSignUp: "Don't have an account? Create one",
+    switchToSignIn: "Already have an account? Sign in",
   },
   navigation: {
     collect: "Collect",

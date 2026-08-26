@@ -11,6 +11,8 @@ export function useAuth() {
     isLoading,
     login,
     loginWithGoogle,
+    loginWithEmail,
+    signUpWithEmail,
     logout,
     checkAuth,
     checkAuthRequired,
@@ -50,21 +52,23 @@ export function useAuth() {
     }
   }
 
-  const handleLogin = async (password: string) => {
-    const success = await login(password)
-    if (success) {
-      redirectAfterLogin()
+  // Shared by every sign-in method (password, Google, email login, email
+  // sign-up): redirect on success, leave the caller on the login screen
+  // (with its error already set by the store) otherwise.
+  const withRedirect = <Args extends unknown[]>(action: (...args: Args) => Promise<boolean>) => {
+    return async (...args: Args) => {
+      const success = await action(...args)
+      if (success) {
+        redirectAfterLogin()
+      }
+      return success
     }
-    return success
   }
 
-  const handleGoogleLogin = async () => {
-    const success = await loginWithGoogle()
-    if (success) {
-      redirectAfterLogin()
-    }
-    return success
-  }
+  const handleLogin = withRedirect(login)
+  const handleGoogleLogin = withRedirect(loginWithGoogle)
+  const handleEmailLogin = withRedirect(loginWithEmail)
+  const handleEmailSignUp = withRedirect(signUpWithEmail)
 
   const handleLogout = () => {
     logout()
@@ -78,6 +82,8 @@ export function useAuth() {
     authMode,
     login: handleLogin,
     loginWithGoogle: handleGoogleLogin,
+    loginWithEmail: handleEmailLogin,
+    signUpWithEmail: handleEmailSignUp,
     logout: handleLogout
   }
 }

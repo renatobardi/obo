@@ -24,6 +24,8 @@ function createMemoryStorage(): Storage {
 
 vi.mock('@/lib/firebase', () => ({
   signInWithGoogle: vi.fn(),
+  signInWithEmail: vi.fn(),
+  signUpWithEmail: vi.fn(),
 }))
 
 vi.mock('@/lib/config', () => ({
@@ -33,11 +35,20 @@ vi.mock('@/lib/config', () => ({
 async function loadStore() {
   vi.stubGlobal('localStorage', createMemoryStorage())
   vi.resetModules()
-  const [{ signInWithGoogle }, { useAuthStore }] = await Promise.all([
-    import('@/lib/firebase'),
-    import('./auth-store'),
-  ])
-  return { useAuthStore, mockSignInWithGoogle: vi.mocked(signInWithGoogle) }
+  // Sequential, not Promise.all: auth-store.ts itself statically imports
+  // '@/lib/firebase', so resolving it here first guarantees both this file
+  // and the store see the same post-resetModules mock instance. Racing the
+  // two imports concurrently was observed to occasionally hand the store a
+  // different (unconfigured) mock function than the one .mockResolvedValue()
+  // was called on, flaking the assertions below (#28 CI).
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = await import('@/lib/firebase')
+  const { useAuthStore } = await import('./auth-store')
+  return {
+    useAuthStore,
+    mockSignInWithGoogle: vi.mocked(signInWithGoogle),
+    mockSignInWithEmail: vi.mocked(signInWithEmail),
+    mockSignUpWithEmail: vi.mocked(signUpWithEmail),
+  }
 }
 
 describe('useAuthStore.loginWithGoogle', () => {
@@ -93,6 +104,94 @@ describe('useAuthStore.loginWithGoogle', () => {
     const state = useAuthStore.getState()
     expect(state.isAuthenticated).toBe(false)
     expect(state.error).toBe('Sign-in was cancelled')
+  })
+})
+
+describe('useAuthStore.loginWithEmail', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('stores the ID token and marks authenticated on a successful complete-signup', async () => {
+    const { useAuthStore, mockSignInWithEmail } = await loadStore()
+    mockSignInWithEmail.mockResolvedValue('fake-id-token')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 }))
+
+    const result = await useAuthStore.getState().loginWithEmail('alice@example.com', 'hunter2')
+
+    expect(result).toBe(true)
+    expect(mockSignInWithEmail).toHaveBeenCalledWith('alice@example.com', 'hunter2')
+    const state = useAuthStore.getState()
+    expect(state.isAuthenticated).toBe(true)
+    expect(state.token).toBe('fake-id-token')
+  })
+
+  it('surfaces a wrong-password error as a friendly message', async () => {
+    const { useAuthStore, mockSignInWithEmail } = await loadStore()
+    mockSignInWithEmail.mockRejectedValue(
+      new Error('Firebase: Error (auth/wrong-password).')
+    )
+
+    const result = await useAuthStore.getState().loginWithEmail('alice@example.com', 'wrong')
+
+    expect(result).toBe(false)
+    const state = useAuthStore.getState()
+    expect(state.isAuthenticated).toBe(false)
+    expect(state.error).toBe('Incorrect email or password.')
+  })
+
+  it('surfaces a user-not-found error as a friendly message', async () => {
+    const { useAuthStore, mockSignInWithEmail } = await loadStore()
+    mockSignInWithEmail.mockRejectedValue(
+      new Error('Firebase: Error (auth/user-not-found).')
+    )
+
+    const result = await useAuthStore.getState().loginWithEmail('nobody@example.com', 'x')
+
+    expect(result).toBe(false)
+    expect(useAuthStore.getState().error).toBe('No account found with that email.')
+  })
+})
+
+describe('useAuthStore.signUpWithEmail', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('stores the ID token and marks authenticated on a successful complete-signup', async () => {
+    const { useAuthStore, mockSignUpWithEmail } = await loadStore()
+    mockSignUpWithEmail.mockResolvedValue('fake-id-token')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 }))
+
+    const result = await useAuthStore.getState().signUpWithEmail('bob@example.com', 'hunter2')
+
+    expect(result).toBe(true)
+    expect(mockSignUpWithEmail).toHaveBeenCalledWith('bob@example.com', 'hunter2')
+    const state = useAuthStore.getState()
+    expect(state.isAuthenticated).toBe(true)
+    expect(state.token).toBe('fake-id-token')
+  })
+
+  it('surfaces an email-already-in-use error as a friendly message', async () => {
+    const { useAuthStore, mockSignUpWithEmail } = await loadStore()
+    mockSignUpWithEmail.mockRejectedValue(
+      new Error('Firebase: Error (auth/email-already-in-use).')
+    )
+
+    const result = await useAuthStore.getState().signUpWithEmail('bob@example.com', 'hunter2')
+
+    expect(result).toBe(false)
+    expect(useAuthStore.getState().error).toBe('An account with that email already exists.')
+  })
+
+  it('surfaces a weak-password error as a friendly message', async () => {
+    const { useAuthStore, mockSignUpWithEmail } = await loadStore()
+    mockSignUpWithEmail.mockRejectedValue(new Error('Firebase: Error (auth/weak-password).'))
+
+    const result = await useAuthStore.getState().signUpWithEmail('bob@example.com', '123')
+
+    expect(result).toBe(false)
+    expect(useAuthStore.getState().error).toBe('Password must be at least 6 characters.')
   })
 })
 

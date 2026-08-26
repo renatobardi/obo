@@ -16,7 +16,9 @@ import { OboMark } from '@/components/layout/OboMark'
 export function LoginForm() {
   const { t, language } = useTranslation()
   const [password, setPassword] = useState('')
-  const { login, loginWithGoogle, isLoading, error, authMode } = useAuth()
+  const [email, setEmail] = useState('')
+  const [emailFormMode, setEmailFormMode] = useState<'signin' | 'signup'>('signin')
+  const { login, loginWithGoogle, loginWithEmail, signUpWithEmail, isLoading, error, authMode } = useAuth()
   const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated } = useAuthStore()
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [configInfo, setConfigInfo] = useState<{ apiUrl: string; version: string; buildTime: string } | null>(null)
@@ -147,6 +149,22 @@ export function LoginForm() {
     }
   }
 
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (email.trim() && password.trim()) {
+      try {
+        if (emailFormMode === 'signup') {
+          await signUpWithEmail(email, password)
+        } else {
+          await loginWithEmail(email, password)
+        }
+      } catch (error) {
+        console.error('Unhandled error during email sign-in:', error)
+        // The auth store should handle most errors, but this catches any unhandled ones
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -172,6 +190,55 @@ export function LoginForm() {
                 <GoogleIcon className="h-4 w-4" />
                 {isLoading ? t('auth.signingIn') : t('auth.signInWithGoogle')}
               </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">{t('auth.orDivider')}</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <Input
+                  type="email"
+                  placeholder={t('auth.emailPlaceholder')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
+                <Input
+                  type="password"
+                  placeholder={t('auth.passwordPlaceholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className="w-full"
+                  disabled={isLoading || !email.trim() || !password.trim()}
+                >
+                  {isLoading
+                    ? t('auth.signingIn')
+                    : emailFormMode === 'signup'
+                      ? t('auth.createAccount')
+                      : t('auth.signIn')}
+                </Button>
+              </form>
+
+              <button
+                type="button"
+                className="w-full text-center text-sm text-muted-foreground underline"
+                onClick={() =>
+                  setEmailFormMode((mode) => (mode === 'signup' ? 'signin' : 'signup'))
+                }
+              >
+                {emailFormMode === 'signup' ? t('auth.switchToSignIn') : t('auth.switchToSignUp')}
+              </button>
 
               {error && (
                 <div className="flex items-center gap-2 text-destructive text-sm">

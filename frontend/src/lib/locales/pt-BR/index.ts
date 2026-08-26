@@ -210,6 +210,11 @@ export const ptBR = {
     signIn: "Entrar",
     signInWithGoogle: "Entrar com o Google",
     connectErrorHint: "Não foi possível conectar ao servidor. Verifique se a API está rodando.",
+    emailPlaceholder: "E-mail",
+    orDivider: "ou",
+    createAccount: "Criar conta",
+    switchToSignUp: "Não tem uma conta? Crie uma",
+    switchToSignIn: "Já tem uma conta? Entrar",
   },
   navigation: {
     collect: "Coletar",

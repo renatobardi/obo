@@ -2,16 +2,20 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoginForm } from './LoginForm'
 
-// Firebase SDK mocked at the boundary (#27 AC): LoginForm never talks to
-// firebase/auth directly, only through useAuth()'s loginWithGoogle - which
-// is what's mocked here, matching how @/lib/hooks/use-auth is already
+// Firebase SDK mocked at the boundary (#27/#28 AC): LoginForm never talks to
+// firebase/auth directly, only through useAuth()'s login*/signUp* actions -
+// which are what's mocked here, matching how @/lib/hooks/use-auth is already
 // globally mocked in src/test/setup.ts for every other component test. This
 // override replaces that default with per-test control over authMode/loading/error.
 const mockLogin = vi.fn()
 const mockLoginWithGoogle = vi.fn()
+const mockLoginWithEmail = vi.fn()
+const mockSignUpWithEmail = vi.fn()
 let mockAuthState: {
   login: typeof mockLogin
   loginWithGoogle: typeof mockLoginWithGoogle
+  loginWithEmail: typeof mockLoginWithEmail
+  signUpWithEmail: typeof mockSignUpWithEmail
   isLoading: boolean
   error: string | null
   authMode: 'password' | 'firebase'
@@ -43,28 +47,34 @@ describe('LoginForm', () => {
   beforeEach(() => {
     mockLogin.mockReset().mockResolvedValue(true)
     mockLoginWithGoogle.mockReset().mockResolvedValue(true)
+    mockLoginWithEmail.mockReset().mockResolvedValue(true)
+    mockSignUpWithEmail.mockReset().mockResolvedValue(true)
     mockAuthState = {
       login: mockLogin,
       loginWithGoogle: mockLoginWithGoogle,
+      loginWithEmail: mockLoginWithEmail,
+      signUpWithEmail: mockSignUpWithEmail,
       isLoading: false,
       error: null,
       authMode: 'password',
     }
   })
 
-  it('renders the password form in password mode, not a Google button', async () => {
+  it('renders only the password form in password mode', async () => {
     render(<LoginForm />)
 
     expect(await screen.findByPlaceholderText('auth.passwordPlaceholder')).toBeInTheDocument()
     expect(screen.queryByText('auth.signInWithGoogle')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('auth.emailPlaceholder')).not.toBeInTheDocument()
   })
 
-  it('renders a Google sign-in button in firebase mode, not the password field', async () => {
+  it('renders a Google button and an email/password form in firebase mode', async () => {
     mockAuthState.authMode = 'firebase'
     render(<LoginForm />)
 
     expect(await screen.findByText('auth.signInWithGoogle')).toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('auth.passwordPlaceholder')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('auth.emailPlaceholder')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('auth.passwordPlaceholder')).toBeInTheDocument()
   })
 
   it('calls loginWithGoogle when the Google button is clicked', async () => {
@@ -91,7 +101,59 @@ describe('LoginForm', () => {
     mockAuthState.isLoading = true
     render(<LoginForm />)
 
-    const button = await screen.findByText('auth.signingIn')
-    expect(button.closest('button')).toBeDisabled()
+    const buttons = await screen.findAllByText('auth.signingIn')
+    expect(buttons[0].closest('button')).toBeDisabled()
+  })
+
+  describe('email/password form (firebase mode)', () => {
+    beforeEach(() => {
+      mockAuthState.authMode = 'firebase'
+    })
+
+    it('defaults to sign-in and calls loginWithEmail on submit', async () => {
+      render(<LoginForm />)
+
+      fireEvent.change(await screen.findByPlaceholderText('auth.emailPlaceholder'), {
+        target: { value: 'alice@example.com' },
+      })
+      fireEvent.change(screen.getByPlaceholderText('auth.passwordPlaceholder'), {
+        target: { value: 'hunter2' },
+      })
+      fireEvent.click(screen.getByText('auth.signIn'))
+
+      await waitFor(() =>
+        expect(mockLoginWithEmail).toHaveBeenCalledWith('alice@example.com', 'hunter2')
+      )
+      expect(mockSignUpWithEmail).not.toHaveBeenCalled()
+    })
+
+    it('switches to sign-up mode and calls signUpWithEmail on submit', async () => {
+      render(<LoginForm />)
+
+      fireEvent.click(await screen.findByText('auth.switchToSignUp'))
+
+      expect(screen.getByText('auth.createAccount')).toBeInTheDocument()
+      expect(screen.getByText('auth.switchToSignIn')).toBeInTheDocument()
+
+      fireEvent.change(screen.getByPlaceholderText('auth.emailPlaceholder'), {
+        target: { value: 'bob@example.com' },
+      })
+      fireEvent.change(screen.getByPlaceholderText('auth.passwordPlaceholder'), {
+        target: { value: 'hunter2' },
+      })
+      fireEvent.click(screen.getByText('auth.createAccount'))
+
+      await waitFor(() =>
+        expect(mockSignUpWithEmail).toHaveBeenCalledWith('bob@example.com', 'hunter2')
+      )
+      expect(mockLoginWithEmail).not.toHaveBeenCalled()
+    })
+
+    it('does not submit with an empty email or password', async () => {
+      render(<LoginForm />)
+
+      const submit = await screen.findByText('auth.signIn')
+      expect(submit.closest('button')).toBeDisabled()
+    })
   })
 })

@@ -210,6 +210,11 @@ export const jaJP = {
     signIn: "サインイン",
     signInWithGoogle: "Googleでサインイン",
     connectErrorHint: "サーバーに接続できません。APIが起動しているか確認してください。",
+    emailPlaceholder: "メールアドレス",
+    orDivider: "または",
+    createAccount: "アカウントを作成",
+    switchToSignUp: "アカウントをお持ちでない方はこちら",
+    switchToSignIn: "すでにアカウントをお持ちの方はサインイン",
   },
   navigation: {
     collect: "収集",

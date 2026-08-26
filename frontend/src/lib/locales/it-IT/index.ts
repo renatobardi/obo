@@ -210,6 +210,11 @@ export const itIT = {
     signIn: "Accedi",
     signInWithGoogle: "Accedi con Google",
     connectErrorHint: "Impossibile connettersi al server. Verifica che l'API sia in esecuzione.",
+    emailPlaceholder: "Email",
+    orDivider: "oppure",
+    createAccount: "Crea account",
+    switchToSignUp: "Non hai un account? Creane uno",
+    switchToSignIn: "Hai già un account? Accedi",
   },
   navigation: {
     collect: "Raccogli",
