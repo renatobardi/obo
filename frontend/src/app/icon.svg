@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#bd34fe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#41d1ff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <g stroke="url(#nodeGradient)" stroke-width="14" stroke-linecap="round">
+    <path d="M120 32L32 120"/>
+    <path d="M120 32L208 120"/>
+    <path d="M32 120L120 208"/>
+    <path d="M208 120L120 208"/>
+    <path d="M32 120L208 120"/>
+  </g>
+
+  <g fill="url(#nodeGradient)">
+    <circle cx="120" cy="32" r="30"/>
+    <circle cx="32" cy="120" r="24"/>
+    <circle cx="208" cy="120" r="24"/>
+    <circle cx="120" cy="208" r="26"/>
+  </g>
+</svg>
