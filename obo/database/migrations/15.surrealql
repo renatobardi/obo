@@ -3,4 +3,4 @@
 -- schema change per option. FLEXIBLE allows arbitrary keys inside the object
 -- on this SCHEMAFULL table; validation stays in the Pydantic Credential model.
 
-DEFINE FIELD config ON credential FLEXIBLE TYPE option<object>;
+DEFINE FIELD config ON credential TYPE option<object> FLEXIBLE;
