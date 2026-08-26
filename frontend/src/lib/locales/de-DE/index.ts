@@ -213,6 +213,11 @@ export const deDE = {
     signIn: "Anmelden",
     signInWithGoogle: "Mit Google anmelden",
     connectErrorHint: "Keine Verbindung zum Server möglich. Bitte prüfe, ob die API läuft.",
+    emailPlaceholder: "E-Mail",
+    orDivider: "oder",
+    createAccount: "Konto erstellen",
+    switchToSignUp: "Noch kein Konto? Konto erstellen",
+    switchToSignIn: "Schon ein Konto? Anmelden",
   },
   navigation: {
     collect: "Sammeln",

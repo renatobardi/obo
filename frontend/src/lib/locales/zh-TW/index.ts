@@ -210,6 +210,11 @@ export const zhTW = {
     signIn: "登入",
     signInWithGoogle: "使用 Google 登入",
     connectErrorHint: "無法連線至伺服器。請檢查 API 是否正在運行。",
+    emailPlaceholder: "電子郵件",
+    orDivider: "或",
+    createAccount: "建立帳戶",
+    switchToSignUp: "沒有帳戶？建立一個",
+    switchToSignIn: "已有帳戶？登入",
   },
   navigation: {
     collect: "採集",

@@ -210,6 +210,11 @@ export const bnIN = {
     signIn: "সাইন ইন",
     signInWithGoogle: "Google দিয়ে সাইন ইন করুন",
     connectErrorHint: "সার্ভারে সংযোগ করতে অক্ষম। API চালু আছে কিনা চেক করুন।",
+    emailPlaceholder: "ইমেইল",
+    orDivider: "অথবা",
+    createAccount: "অ্যাকাউন্ট তৈরি করুন",
+    switchToSignUp: "অ্যাকাউন্ট নেই? একটি তৈরি করুন",
+    switchToSignIn: "ইতিমধ্যে অ্যাকাউন্ট আছে? সাইন ইন করুন",
   },
   navigation: {
     collect: "সংগ্রহ",

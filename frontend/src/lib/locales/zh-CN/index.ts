@@ -210,6 +210,11 @@ export const zhCN = {
     signIn: "登录",
     signInWithGoogle: "使用 Google 登录",
     connectErrorHint: "无法连接到服务器。请检查 API 是否正在运行。",
+    emailPlaceholder: "邮箱",
+    orDivider: "或",
+    createAccount: "创建账户",
+    switchToSignUp: "没有账户？创建一个",
+    switchToSignIn: "已有账户？登录",
   },
   navigation: {
     collect: "采集",

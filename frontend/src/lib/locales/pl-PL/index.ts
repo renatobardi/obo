@@ -210,6 +210,11 @@ export const plPL = {
     signIn: "Zaloguj się",
     signInWithGoogle: "Zaloguj się przez Google",
     connectErrorHint: "Nie można połączyć się z serwerem. Sprawdź, czy API jest uruchomione.",
+    emailPlaceholder: "E-mail",
+    orDivider: "lub",
+    createAccount: "Utwórz konto",
+    switchToSignUp: "Nie masz konta? Utwórz je",
+    switchToSignIn: "Masz już konto? Zaloguj się",
   },
   navigation: {
     collect: "Zbieraj",

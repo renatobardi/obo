@@ -210,6 +210,11 @@ export const frFR = {
     signIn: "Se connecter",
     signInWithGoogle: "Se connecter avec Google",
     connectErrorHint: "Impossible de se connecter au serveur. Veuillez vérifier si l'API est lancée.",
+    emailPlaceholder: "E-mail",
+    orDivider: "ou",
+    createAccount: "Créer un compte",
+    switchToSignUp: "Pas de compte ? Créez-en un",
+    switchToSignIn: "Déjà un compte ? Connectez-vous",
   },
   navigation: {
     collect: "Collecter",

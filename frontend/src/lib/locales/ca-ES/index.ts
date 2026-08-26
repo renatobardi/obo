@@ -210,6 +210,11 @@ export const caES = {
     signIn: "Inicia la sessió",
     signInWithGoogle: "Inicia la sessió amb Google",
     connectErrorHint: "No es pot connectar al servidor. Comprova si l'API s'està executant.",
+    emailPlaceholder: "Correu electrònic",
+    orDivider: "o",
+    createAccount: "Crea un compte",
+    switchToSignUp: "No tens compte? Crea'n un",
+    switchToSignIn: "Ja tens compte? Inicia la sessió",
   },
   navigation: {
     collect: "Recull",

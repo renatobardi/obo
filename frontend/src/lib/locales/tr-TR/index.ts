@@ -210,6 +210,11 @@ export const trTR = {
     signIn: "Giriş Yap",
     signInWithGoogle: "Google ile Giriş Yap",
     connectErrorHint: "Sunucuya bağlanılamıyor. API'nin çalışıp çalışmadığını kontrol edin.",
+    emailPlaceholder: "E-posta",
+    orDivider: "veya",
+    createAccount: "Hesap Oluştur",
+    switchToSignUp: "Hesabınız yok mu? Oluşturun",
+    switchToSignIn: "Zaten hesabınız var mı? Giriş yapın",
   },
   navigation: {
     collect: "Topla",
