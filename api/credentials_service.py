@@ -253,6 +253,7 @@ async def test_credential(credential_id: str) -> dict:
         from obo.ai.connection_tester import (
             _is_vertex_credentials_file_error,
             _test_anthropic_compatible_connection,
+            _test_anthropic_connection,
             _test_azure_connection,
             _test_ollama_connection,
             _test_openai_compatible_connection,
@@ -310,6 +311,10 @@ async def test_credential(credential_id: str) -> dict:
                 api_key=config.get("api_key"),
                 api_version=config.get("api_version"),
             )
+            return {"provider": provider, "success": success, "message": message}
+
+        if provider == "anthropic":
+            success, message = await _test_anthropic_connection(config.get("api_key"))
             return {"provider": provider, "success": success, "message": message}
 
         # Standard provider: use Esperanto to create and test

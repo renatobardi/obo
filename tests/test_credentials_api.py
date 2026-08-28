@@ -1,6 +1,6 @@
 """Tests for the credentials API endpoint."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -15,6 +15,62 @@ def client():
     from api.main import app
 
     return TestClient(app)
+
+
+class TestCredentialConnection:
+    def test_anthropic_connection_does_not_depend_on_legacy_model(self, client):
+        credential = MagicMock()
+        credential.provider = "anthropic"
+        credential.to_esperanto_config.return_value = {"api_key": "sk-ant-test"}
+
+        with (
+            patch(
+                "api.credentials_service.Credential.get",
+                new=AsyncMock(return_value=credential),
+            ),
+            patch(
+                "obo.ai.connection_tester._test_anthropic_connection",
+                new=AsyncMock(return_value=(True, "Connection successful")),
+            ) as test_connection,
+            patch(
+                "esperanto.factory.AIFactory.create_language",
+                side_effect=Exception("403 forbidden for claude-3-haiku-20240307"),
+            ) as create_language,
+        ):
+            response = client.post("/api/credentials/credential:test/test")
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "provider": "anthropic",
+            "success": True,
+            "message": "Connection successful",
+        }
+        test_connection.assert_awaited_once_with("sk-ant-test")
+        create_language.assert_not_called()
+
+    def test_anthropic_connection_preserves_authentication_failure(self, client):
+        credential = MagicMock()
+        credential.provider = "anthropic"
+        credential.to_esperanto_config.return_value = {"api_key": "invalid"}
+
+        with (
+            patch(
+                "api.credentials_service.Credential.get",
+                new=AsyncMock(return_value=credential),
+            ),
+            patch(
+                "obo.ai.connection_tester._test_anthropic_connection",
+                new=AsyncMock(return_value=(False, "Invalid API key")),
+            ),
+        ):
+            response = client.post("/api/credentials/credential:test/test")
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "provider": "anthropic",
+            "success": False,
+            "message": "Invalid API key",
+        }
 
 
 class TestCredentialCascadeDelete:

@@ -83,6 +83,17 @@ def normalize_anthropic_compatible_base_url(base_url: str) -> str:
     return normalized_url if normalized_url.endswith("/v1") else f"{normalized_url}/v1"
 
 
+async def _test_anthropic_connection(
+    api_key: Optional[str] = None,
+) -> Tuple[bool, str]:
+    """Test Anthropic connectivity without invoking a specific model."""
+    if not api_key:
+        return False, "No API key configured"
+    return await _test_anthropic_compatible_connection(
+        "https://api.anthropic.com", api_key
+    )
+
+
 async def _test_azure_connection(
     endpoint: Optional[str] = None,
     api_key: Optional[str] = None,
