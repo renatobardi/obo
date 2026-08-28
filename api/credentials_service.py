@@ -312,6 +312,23 @@ async def test_credential(credential_id: str) -> dict:
             )
             return {"provider": provider, "success": success, "message": message}
 
+        if provider == "anthropic":
+            api_key = config.get("api_key")
+            if not api_key:
+                return {
+                    "provider": provider,
+                    "success": False,
+                    "message": "No API key configured",
+                }
+            from obo.ai.model_discovery import fetch_anthropic_model_ids
+
+            await fetch_anthropic_model_ids(api_key)
+            return {
+                "provider": provider,
+                "success": True,
+                "message": "Connection successful",
+            }
+
         # Standard provider: use Esperanto to create and test
         from esperanto.factory import AIFactory
 
