@@ -14,11 +14,11 @@ Comprehensive list of all environment variables available in Obo.
 | `OBO_PASSWORD` | No | None | Password to protect Obo instance |
 | `OBO_ENCRYPTION_KEY` | **Yes** | None | Secret string to encrypt credentials stored in database (any string works). **Required** for the credential system. Supports Docker secrets via `_FILE` suffix. |
 | `OBO_AUTH_MODE` | No | `password` | Auth mode: `password` or `firebase`. Exactly one is active per instance — restart required to change it. See [PDR-003](../7-DEVELOPMENT/decisions/PDR-003-multitenant-firebase-auth.md). |
-| `OBO_FIREBASE_SERVICE_ACCOUNT` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase Admin SDK service account JSON (the key file's contents). Supports Docker secrets via `_FILE` suffix (`OBO_FIREBASE_SERVICE_ACCOUNT_FILE`, pointing at the JSON key file). |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (frontend). Safe to ship client-side — see [self-host setup research](../7-DEVELOPMENT/research/firebase-project-selfhost-setup.md). |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (frontend). |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (frontend). |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (frontend). |
+| `OBO_FIREBASE_PROJECT_ID` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase project id used by the backend to verify ID tokens via Google's public JWKS endpoint. No service account is required. |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (baked into the Next.js build). Safe to ship client-side — see [self-host setup research](../7-DEVELOPMENT/research/firebase-project-selfhost-setup.md). |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (baked into the Next.js build). |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (baked into the Next.js build). |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Only if `OBO_AUTH_MODE=firebase` | None | Firebase JS SDK project config (baked into the Next.js build). |
 | `FRONTEND_BIND_HOST` | No | `0.0.0.0` (in Docker) | Network interface for Next.js to bind to. Default `0.0.0.0` ensures accessibility from reverse proxies. (Replaces `HOSTNAME`, which container runtimes such as Podman override with the container/pod hostname, causing Next.js to bind to the wrong address) |
 | `API_HOST` | No | `0.0.0.0` (in Docker) | Network interface for the API (uvicorn) to bind to. Set to `::` for IPv6 dual-stack environments (listens on IPv6 and, on Linux defaults, IPv4 too) |
 | `OBO_MAX_UPLOAD_SIZE_MB` | No | 100 | Maximum request body size (in MB) the API will accept, enforced before auth/routing. Raise this if you need to upload larger audio/video files. A fronting reverse proxy's own limit (e.g. nginx `client_max_body_size`) still applies and should be raised to match. |
