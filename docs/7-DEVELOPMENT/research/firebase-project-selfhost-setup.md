@@ -1,5 +1,7 @@
 # Research: Self-hosted Firebase project setup (env vars, service account, docs)
 
+> **Note:** This document is a research artifact from the exploration phase. The final implementation uses **JWKS verification** instead of a service-account JSON. See the operator guide at [`docs/5-CONFIGURATION/firebase-auth.md`](../5-CONFIGURATION/firebase-auth.md) for the current deployment steps.
+
 Wayfinder ticket: [#23](https://github.com/renatobardi/obo/issues/23), child of map issue [#14](https://github.com/renatobardi/obo/issues/14) ("Obo multitenant with Firebase Auth (Google + email)").
 
 Scope: what a self-hosting operator must do in the Firebase/Google Cloud console to stand up
