@@ -29,9 +29,9 @@ class TestCredentialConnection:
                 new=AsyncMock(return_value=credential),
             ),
             patch(
-                "obo.ai.model_discovery.fetch_anthropic_model_ids",
-                new=AsyncMock(return_value=["claude-sonnet-4-6"]),
-            ) as fetch_models,
+                "obo.ai.connection_tester._test_anthropic_connection",
+                new=AsyncMock(return_value=(True, "Connection successful")),
+            ) as test_connection,
             patch(
                 "esperanto.factory.AIFactory.create_language",
                 side_effect=Exception("403 forbidden for claude-3-haiku-20240307"),
@@ -45,8 +45,32 @@ class TestCredentialConnection:
             "success": True,
             "message": "Connection successful",
         }
-        fetch_models.assert_awaited_once_with("sk-ant-test")
+        test_connection.assert_awaited_once_with("sk-ant-test")
         create_language.assert_not_called()
+
+    def test_anthropic_connection_preserves_authentication_failure(self, client):
+        credential = MagicMock()
+        credential.provider = "anthropic"
+        credential.to_esperanto_config.return_value = {"api_key": "invalid"}
+
+        with (
+            patch(
+                "api.credentials_service.Credential.get",
+                new=AsyncMock(return_value=credential),
+            ),
+            patch(
+                "obo.ai.connection_tester._test_anthropic_connection",
+                new=AsyncMock(return_value=(False, "Invalid API key")),
+            ),
+        ):
+            response = client.post("/api/credentials/credential:test/test")
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "provider": "anthropic",
+            "success": False,
+            "message": "Invalid API key",
+        }
 
 
 class TestCredentialCascadeDelete:
