@@ -193,6 +193,12 @@ OBO_ENCRYPTION_KEY=my-secret-key
 - SSL/HTTPS configuration
 - Coolify and other platforms
 
+### [Firebase Authentication](firebase-auth.md)
+- Firebase console setup
+- Build args for public Firebase config
+- Runtime env vars for JWKS verification
+- Domain authorization and troubleshooting
+
 ### [Security](security.md)
 - Password protection
 - API authentication
