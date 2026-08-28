@@ -1,13 +1,9 @@
 import asyncio
-import json
 import os
 import secrets
-from typing import Literal, Optional, cast
+from typing import Any, Literal, Optional, cast
 
-import firebase_admin
 from fastapi import Request
-from firebase_admin import auth as firebase_auth
-from firebase_admin import credentials as firebase_credentials
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import JSONResponse, Response
@@ -17,6 +13,7 @@ from obo.domain.tenancy import current_tenant, current_user
 from obo.domain.tenant import User
 from obo.exceptions import ConfigurationError, NotFoundError
 from obo.utils.encryption import get_secret_from_env
+from obo.utils.firebase_jwks import verify_firebase_id_token
 
 # Single source of truth for the signup-provisioning route, shared with
 # api/routers/auth.py (the route definition) so the two can't drift apart.
@@ -41,38 +38,14 @@ def get_auth_mode() -> AuthMode:
     return cast(AuthMode, mode)
 
 
-def init_firebase_app() -> None:
-    """Initialize the Firebase Admin SDK app once (idempotent - safe to call
-    from every FirebaseAuthMiddleware instantiation, e.g. under test reloads).
-
-    Service-account credentials follow the existing _FILE-suffix Docker-secret
-    convention (get_secret_from_env): OBO_FIREBASE_SERVICE_ACCOUNT_FILE holds
-    the path to the JSON key file, OBO_FIREBASE_SERVICE_ACCOUNT the raw JSON
-    string itself as a fallback.
-    """
-    try:
-        firebase_admin.get_app()
-        return
-    except ValueError:
-        pass
-
-    raw = get_secret_from_env("OBO_FIREBASE_SERVICE_ACCOUNT")
-    if not raw:
+def get_firebase_project_id() -> str:
+    """Return the Firebase project id required for JWKS token verification."""
+    project_id = get_secret_from_env("OBO_FIREBASE_PROJECT_ID")
+    if not project_id:
         raise ConfigurationError(
-            "OBO_AUTH_MODE=firebase requires OBO_FIREBASE_SERVICE_ACCOUNT_FILE "
-            "(path to the Firebase service account JSON key) or "
-            "OBO_FIREBASE_SERVICE_ACCOUNT (the JSON itself) to be set."
+            "OBO_AUTH_MODE=firebase requires OBO_FIREBASE_PROJECT_ID to be set."
         )
-    try:
-        service_account_info = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise ConfigurationError(
-            f"OBO_FIREBASE_SERVICE_ACCOUNT(_FILE) does not contain valid JSON: {e}"
-        ) from e
-
-    firebase_admin.initialize_app(
-        firebase_credentials.Certificate(service_account_info)
-    )
+    return project_id
 
 
 class PasswordAuthMiddleware(BaseHTTPMiddleware):
@@ -182,7 +155,7 @@ class FirebaseAuthMiddleware(BaseHTTPMiddleware):
         complete_signup_path: str = COMPLETE_SIGNUP_PATH,
     ) -> None:
         super().__init__(app)
-        init_firebase_app()
+        self.project_id = get_firebase_project_id()
         self.excluded_paths: list[str] = excluded_paths or [
             "/",
             "/health",
@@ -229,10 +202,10 @@ class FirebaseAuthMiddleware(BaseHTTPMiddleware):
             )
 
         try:
-            # verify_id_token() is sync (blocking network I/O on cache-miss);
-            # asyncio.to_thread() keeps it off the event loop.
-            decoded = await asyncio.to_thread(
-                firebase_auth.verify_id_token, token, check_revoked=False
+            # Token verification is sync (blocking network I/O on JWKS cache
+            # miss); asyncio.to_thread() keeps it off the event loop.
+            decoded: dict[str, Any] = await asyncio.to_thread(
+                verify_firebase_id_token, token, self.project_id
             )
         except Exception as e:
             logger.debug(f"Firebase ID token verification failed: {e}")

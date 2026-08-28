@@ -15,7 +15,7 @@ from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
 from obo.domain.tenancy import DEFAULT_TENANT_ID, DEFAULT_USER_ID
-from obo.exceptions import NotFoundError
+from obo.exceptions import AuthenticationError, NotFoundError
 
 
 def _build_app(**middleware_kwargs):
@@ -47,11 +47,12 @@ def _build_app(**middleware_kwargs):
 
 @pytest.fixture
 def client():
-    # FastAPI/Starlette build the middleware stack (and so call
-    # FirebaseAuthMiddleware.__init__ -> init_firebase_app()) lazily on the
-    # first request, not at add_middleware() time - so this patch must still
-    # be active when the test issues its request, not just during app setup.
-    with patch("api.auth.init_firebase_app"):
+    # FastAPI/Starlette build the middleware stack lazily on the first
+    # request, so this patch must still be active when the test runs.
+    with (
+        patch("api.auth.get_firebase_project_id", return_value="test-project"),
+        patch("obo.utils.firebase_jwks._jwks_cache", None),
+    ):
         yield TestClient(_build_app())
 
 
@@ -78,19 +79,19 @@ class TestMissingOrMalformedHeader:
 class TestTokenVerification:
     def test_invalid_token_returns_401(self, client):
         with patch(
-            "api.auth.firebase_auth.verify_id_token",
-            side_effect=ValueError("invalid token"),
+            "api.auth.verify_firebase_id_token",
+            side_effect=AuthenticationError("invalid token"),
         ):
             response = client.get(
                 "/protected", headers={"Authorization": "Bearer bad-token"}
             )
         assert response.status_code == 401
 
-    def test_valid_token_calls_verify_id_token_with_check_revoked_false(self, client):
+    def test_valid_token_calls_verify_firebase_id_token(self, client):
         with (
             patch(
-                "api.auth.firebase_auth.verify_id_token",
-                return_value={"uid": "uid123"},
+                "api.auth.verify_firebase_id_token",
+                return_value={"uid": "uid123", "email": "test@example.com"},
             ) as mock_verify,
             patch(
                 "api.auth.User.get",
@@ -102,15 +103,15 @@ class TestTokenVerification:
             client.get("/protected", headers={"Authorization": "Bearer good-token"})
         mock_verify.assert_called_once()
         assert mock_verify.call_args.args[0] == "good-token"
-        assert mock_verify.call_args.kwargs.get("check_revoked") is False
+        assert mock_verify.call_args.args[1] == "test-project"
 
 
 class TestUnprovisionedIdentity:
     def test_valid_token_no_matching_user_returns_403_on_protected_route(self, client):
         with (
             patch(
-                "api.auth.firebase_auth.verify_id_token",
-                return_value={"uid": "new-uid"},
+                "api.auth.verify_firebase_id_token",
+                return_value={"uid": "new-uid", "email": "new@example.com"},
             ),
             patch("api.auth.User.get", new=AsyncMock(side_effect=NotFoundError("no"))),
         ):
@@ -123,7 +124,7 @@ class TestUnprovisionedIdentity:
         self, client
     ):
         with patch(
-            "api.auth.firebase_auth.verify_id_token",
+            "api.auth.verify_firebase_id_token",
             return_value={"uid": "new-uid", "email": "new@example.com"},
         ):
             response = client.post(
@@ -138,8 +139,8 @@ class TestTenancyContextPropagation:
     def test_provisioned_user_sets_tenancy_context_for_the_request(self, client):
         with (
             patch(
-                "api.auth.firebase_auth.verify_id_token",
-                return_value={"uid": "uid123"},
+                "api.auth.verify_firebase_id_token",
+                return_value={"uid": "uid123", "email": "test@example.com"},
             ),
             patch(
                 "api.auth.User.get",
@@ -160,8 +161,8 @@ class TestTenancyContextPropagation:
     def test_context_resets_to_sentinel_after_request(self, client):
         with (
             patch(
-                "api.auth.firebase_auth.verify_id_token",
-                return_value={"uid": "uid123"},
+                "api.auth.verify_firebase_id_token",
+                return_value={"uid": "uid123", "email": "test@example.com"},
             ),
             patch(
                 "api.auth.User.get",

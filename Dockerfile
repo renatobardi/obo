@@ -25,6 +25,20 @@ RUN i=0; until npm ci; do \
 
 # Copy the rest of the frontend source and build
 COPY frontend/ ./
+
+# Firebase JS SDK config is public (apiKey, authDomain, etc.) and is baked
+# into the Next.js build via NEXT_PUBLIC_* variables. Defaults are empty for
+# password-mode builds; operators override them at build time for Firebase
+# deployments (see .env.example).
+ARG NEXT_PUBLIC_FIREBASE_API_KEY
+ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ARG NEXT_PUBLIC_FIREBASE_APP_ID
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}
+ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+ENV NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
+
 RUN npm run build
 
 # Stage 2: Backend builder
