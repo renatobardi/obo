@@ -8,8 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Sun, Moon, Monitor } from 'lucide-react'
+import { Sun, Moon } from 'lucide-react'
 import { useTranslation } from '@/lib/hooks/use-translation'
+import { THEME_OPTIONS } from '@/lib/i18n-options'
 
 interface ThemeToggleProps {
   iconOnly?: boolean
@@ -36,27 +37,16 @@ export function ThemeToggle({ iconOnly = false }: ThemeToggleProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem 
-          onClick={() => setTheme('light')}
-          className={theme === 'light' ? 'bg-accent' : ''}
-        >
-          <Sun className="mr-2 h-4 w-4" />
-          <span>{t('common.light')}</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme('dark')}
-          className={theme === 'dark' ? 'bg-accent' : ''}
-        >
-          <Moon className="mr-2 h-4 w-4" />
-          <span>{t('common.dark')}</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme('system')}
-          className={theme === 'system' ? 'bg-accent' : ''}
-        >
-          <Monitor className="mr-2 h-4 w-4" />
-          <span>{t('common.system')}</span>
-        </DropdownMenuItem>
+        {THEME_OPTIONS.map(({ value, labelKey, icon: Icon }) => (
+          <DropdownMenuItem
+            key={value}
+            onClick={() => setTheme(value)}
+            className={theme === value ? 'bg-accent' : ''}
+          >
+            <Icon className="mr-2 h-4 w-4" />
+            <span>{t(labelKey)}</span>
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )
