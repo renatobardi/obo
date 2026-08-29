@@ -1,6 +1,29 @@
 import type { ContextMode, NoteContextMode } from '@/lib/types/notebook-context'
 
 /**
+ * The status strings the build-context endpoint expects for each selection
+ * mode. Shared by the notebook chat and Studio so the mapping lives in one
+ * place (see `obo/utils/context_builder.py`).
+ */
+export const CONTEXT_STATUS = {
+  off: 'not in',
+  insights: 'insights',
+  full: 'full content',
+} as const
+
+/** Map a source's context mode to the endpoint status string. */
+export function sourceModeToContextStatus(mode: ContextMode | undefined): string {
+  if (mode === 'insights') return CONTEXT_STATUS.insights
+  if (mode === 'full') return CONTEXT_STATUS.full
+  return CONTEXT_STATUS.off
+}
+
+/** Map a note's context mode (binary) to the endpoint status string. */
+export function noteModeToContextStatus(mode: NoteContextMode | undefined): string {
+  return mode === 'full' ? CONTEXT_STATUS.full : CONTEXT_STATUS.off
+}
+
+/**
  * Bulk context actions for sources:
  * - `include`  → each source's sensible included mode (insights if available, else full)
  * - `insights` → insights when the source has them, otherwise excluded (don't force full)
