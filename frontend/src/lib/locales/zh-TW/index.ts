@@ -418,6 +418,7 @@ export const zhTW = {
     retry: "重試",
     addExistingTitle: "新增現有來源",
     addExistingDesc: "從您的所有筆記本中選擇已有的來源新增到當前筆記本。",
+    reuseFromOtherNotebook: "重複使用其他筆記本中的來源",
     dropFilesHere: "將檔案拖放到這裡",
     supportedFormats: "PDF、文字、Markdown、音訊、影片或網頁連結",
     chooseFiles: "選擇檔案",

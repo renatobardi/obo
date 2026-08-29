@@ -167,7 +167,7 @@ export default function NotebookPage() {
           <div className="flex-shrink-0 p-6 pb-0">
             <NotebookHeader notebook={notebook} />
           </div>
-          <NotebookEmptyState notebookId={notebookId} onSourceAdded={refetchSources} />
+          <NotebookEmptyState notebookId={notebookId} />
         </div>
       </AppShell>
     )

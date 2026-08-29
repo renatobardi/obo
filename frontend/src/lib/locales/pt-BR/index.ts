@@ -418,6 +418,7 @@ export const ptBR = {
     retry: "Tentar Novamente",
     addExistingTitle: "Adicionar Fontes Existentes",
     addExistingDesc: "Selecione fontes existentes de todos os seus cadernos para adicionar ao atual.",
+    reuseFromOtherNotebook: "Reaproveitar uma fonte de outro caderno",
     dropFilesHere: "Solte arquivos aqui",
     supportedFormats: "PDF, texto, Markdown, áudio, vídeo ou um link da web",
     chooseFiles: "Escolher arquivos",

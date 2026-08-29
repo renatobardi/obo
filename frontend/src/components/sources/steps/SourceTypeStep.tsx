@@ -255,7 +255,7 @@ export function SourceTypeStep({ control, register, setValue, errors, urlValidat
                       <p className="text-xs text-muted-foreground mt-1">
                         {t('sources.selectMultipleFilesHint')}
                       </p>
-                      {fileCount > 1 && fileInput instanceof FileList && (
+                      {fileCount >= 1 && fileInput instanceof FileList && (
                         <div className="mt-2 p-3 rounded-md border border-border">
                           <p className="text-xs font-medium mb-2">{t('sources.selectedFiles')}</p>
                           <ul className="space-y-1 max-h-32 overflow-y-auto">

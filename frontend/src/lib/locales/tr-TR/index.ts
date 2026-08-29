@@ -418,6 +418,7 @@ export const trTR = {
     retry: "Yeniden Dene",
     addExistingTitle: "Mevcut Kaynakları Ekle",
     addExistingDesc: "Mevcut defterlerinizdeki kaynakları seçerek mevcut deftere ekleyin.",
+    reuseFromOtherNotebook: "Başka bir defterdeki bir kaynağı yeniden kullan",
     dropFilesHere: "Dosyaları buraya bırakın",
     supportedFormats: "PDF, metin, Markdown, ses, video veya bir web bağlantısı",
     chooseFiles: "Dosya seç",

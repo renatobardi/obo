@@ -71,6 +71,10 @@ interface AddSourceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultNotebookId?: string
+  /** Pre-select a source type tab when the dialog opens. */
+  defaultType?: 'link' | 'upload' | 'text'
+  /** Files to pre-load into the upload tab (e.g. dropped onto an empty state). */
+  initialFiles?: File[]
 }
 
 interface ProcessingState {
@@ -85,10 +89,12 @@ interface BatchProgress {
   currentItem?: string
 }
 
-export function AddSourceDialog({ 
-  open, 
-  onOpenChange, 
-  defaultNotebookId 
+export function AddSourceDialog({
+  open,
+  onOpenChange,
+  defaultNotebookId,
+  defaultType,
+  initialFiles,
 }: AddSourceDialogProps) {
   const { t } = useTranslation()
 
@@ -132,6 +138,7 @@ export function AddSourceDialog({
   } = useForm<CreateSourceFormData>({
     resolver: zodResolver(createSourceSchema),
     defaultValues: {
+      type: defaultType,
       notebooks: defaultNotebookId ? [defaultNotebookId] : [],
       embed: settings?.default_embedding_option === 'always' || settings?.default_embedding_option === 'ask',
       async_processing: true,
@@ -139,7 +146,9 @@ export function AddSourceDialog({
     },
   })
 
-  // Initialize form values when settings and transformations are loaded
+  // Apply settings-derived defaults once settings/transformations load. Targeted
+  // setValue rather than reset() so it can't wipe a type/file the caller
+  // pre-selected (the empty-state CTAs and dropzone set those on open).
   useEffect(() => {
     if (settings && transformations.length > 0) {
       const defaultTransformations = transformations
@@ -148,18 +157,25 @@ export function AddSourceDialog({
 
       setSelectedTransformations(defaultTransformations)
 
-      // Reset form with proper embed value based on settings
       const embedValue = settings.default_embedding_option === 'always' ||
                          (settings.default_embedding_option === 'ask')
 
-      reset({
-        notebooks: defaultNotebookId ? [defaultNotebookId] : [],
-        embed: embedValue,
-        async_processing: true,
-        transformations: [],
-      })
+      setValue('embed', embedValue)
     }
-  }, [settings, transformations, defaultNotebookId, reset])
+  }, [settings, transformations, setValue])
+
+  // Single initializer for type / dropped files each time the dialog opens.
+  useEffect(() => {
+    if (!open) return
+    if (initialFiles && initialFiles.length > 0) {
+      const dt = new DataTransfer()
+      initialFiles.forEach(file => dt.items.add(file))
+      setValue('type', 'upload')
+      setValue('file', dt.files, { shouldValidate: true })
+    } else if (defaultType) {
+      setValue('type', defaultType)
+    }
+  }, [open, defaultType, initialFiles, setValue])
 
   // Cleanup effect
   useEffect(() => {

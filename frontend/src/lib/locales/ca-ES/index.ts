@@ -418,6 +418,7 @@ export const caES = {
     retry: "Reintenta",
     addExistingTitle: "Afegeix fonts existents",
     addExistingDesc: "Selecciona fonts existents de tots els teus quaderns per afegir-les a l'actual.",
+    reuseFromOtherNotebook: "Reaprofita una font d'un altre quadern",
     dropFilesHere: "Deixa anar els fitxers aquí",
     supportedFormats: "PDF, text, Markdown, àudio, vídeo o un enllaç web",
     chooseFiles: "Tria fitxers",

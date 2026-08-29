@@ -1,21 +1,42 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, FileUp, Link as LinkIcon, PencilLine } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AddSourceDialog } from '@/components/sources/AddSourceDialog'
 import { AddExistingSourceDialog } from '@/components/sources/AddExistingSourceDialog'
 import { useTranslation } from '@/lib/hooks/use-translation'
 
+type SourceType = 'link' | 'upload' | 'text'
+
 interface NotebookEmptyStateProps {
   notebookId: string
-  onSourceAdded?: () => void
 }
 
-export function NotebookEmptyState({ notebookId, onSourceAdded }: NotebookEmptyStateProps) {
+export function NotebookEmptyState({ notebookId }: NotebookEmptyStateProps) {
   const { t } = useTranslation()
   const [addOpen, setAddOpen] = useState(false)
   const [addExistingOpen, setAddExistingOpen] = useState(false)
+  const [dialogType, setDialogType] = useState<SourceType>('upload')
+  const [droppedFiles, setDroppedFiles] = useState<File[]>([])
+
+  const openAdd = (type: SourceType, files: File[] = []) => {
+    setDroppedFiles(files)
+    setDialogType(type)
+    setAddOpen(true)
+  }
+
+  const handleAddOpenChange = (open: boolean) => {
+    setAddOpen(open)
+    if (!open) setDroppedFiles([])
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length === 0) return
+    openAdd('upload', files)
+  }
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -23,22 +44,22 @@ export function NotebookEmptyState({ notebookId, onSourceAdded }: NotebookEmptyS
         <h1 className="text-2xl font-bold">{t('notebooks.emptyTitle')}</h1>
         <p className="mt-2 text-muted-foreground">{t('notebooks.emptyDesc')}</p>
 
-        <div className="mt-8 rounded-lg border-2 border-dashed border-border p-8">
+        <div
+          data-testid="notebook-empty-dropzone"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          className="mt-8 rounded-lg border-2 border-dashed border-border p-8"
+        >
           <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-3 font-medium">{t('sources.dropFilesHere')}</p>
           <p className="mt-1 text-xs text-muted-foreground">{t('sources.supportedFormats')}</p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Button onClick={() => setAddOpen(true)}>
-              <FileUp className="mr-2 h-4 w-4" />
-              {t('sources.chooseFiles')}
-            </Button>
-            <Button variant="outline" onClick={() => setAddOpen(true)}>
-              <LinkIcon className="mr-2 h-4 w-4" />
+            <Button onClick={() => openAdd('upload')}>{t('sources.chooseFiles')}</Button>
+            <Button variant="outline" onClick={() => openAdd('link')}>
               {t('sources.pasteLink')}
             </Button>
-            <Button variant="outline" onClick={() => setAddOpen(true)}>
-              <PencilLine className="mr-2 h-4 w-4" />
+            <Button variant="outline" onClick={() => openAdd('text')}>
               {t('sources.writeText')}
             </Button>
           </div>
@@ -49,20 +70,21 @@ export function NotebookEmptyState({ notebookId, onSourceAdded }: NotebookEmptyS
           onClick={() => setAddExistingOpen(true)}
           className="mt-4 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
         >
-          {t('sources.addExisting')}
+          {t('sources.reuseFromOtherNotebook')}
         </button>
       </div>
 
       <AddSourceDialog
         open={addOpen}
-        onOpenChange={setAddOpen}
+        onOpenChange={handleAddOpenChange}
         defaultNotebookId={notebookId}
+        defaultType={dialogType}
+        initialFiles={droppedFiles}
       />
       <AddExistingSourceDialog
         open={addExistingOpen}
         onOpenChange={setAddExistingOpen}
         notebookId={notebookId}
-        onSuccess={onSourceAdded}
       />
     </div>
   )

@@ -418,6 +418,7 @@ export const jaJP = {
     retry: "再試行",
     addExistingTitle: "既存ソースを追加",
     addExistingDesc: "すべてのノートブックから既存のソースを選択して現在のノートブックに追加します。",
+    reuseFromOtherNotebook: "他のノートブックのソースを再利用",
     dropFilesHere: "ここにファイルをドロップ",
     supportedFormats: "PDF、テキスト、Markdown、音声、動画、またはウェブリンク",
     chooseFiles: "ファイルを選択",
