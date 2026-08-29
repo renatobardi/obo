@@ -29,6 +29,19 @@ It was redesigned during the v1.11.0 release ([ADR-005](../docs/7-DEVELOPMENT/de
 5. Cut a stable release when `main` has a coherent set of changes ready for
    users — following the confidence process below.
 
+## Obo Production Deployment
+
+The maintainer deployment at `obo.oute.pro` is independent from public image releases. After the `Tests` workflow succeeds on `main`, `deploy-prd.yml`:
+
+1. Builds an ARM64 Firebase image tagged immutably as `ghcr.io/renatobardi/obo:prd-<commit-sha>`.
+2. Connects a GitHub-hosted runner to the tailnet as the ephemeral `tag:ci` identity.
+3. Sends the image digest to the restricted `oute-server` deploy command, which fast-forwards the production checkout and runs `scripts/deploy-prd.sh` inside `obo-prd`. Only the `obo` service is updated; SurrealDB is not recreated.
+4. Checks the container health endpoint, the public auth endpoint, and the login page. A failed check automatically restores the previous image.
+
+The `production` GitHub environment is restricted to `main` and holds `PRD_SSH_PRIVATE_KEY`, `PRD_SSH_KNOWN_HOSTS`, `TS_OAUTH_CLIENT_ID`, and `TS_OAUTH_SECRET`. Repository variables are `PRD_SSH_HOST`, `PRD_SSH_USER`, and the four `PRD_FIREBASE_*` client values. Firebase build arguments must remain limited to public `NEXT_PUBLIC_*` values. The Tailscale OAuth client has only `auth_keys` scope for `tag:ci`; tailnet policy limits that tag to port 22 on `oute-server`.
+
+The remote contract is compose project `obo` at `/opt/app`, application container `obo-obo-1`, root-only environment file `/etc/obo/prd.env`, tracked override `deploy/docker-compose.prd.yml`, local image alias `obo-prd-firebase:latest`, and forced SSH command `~/bin/obo-deploy`. Production images are built in CI; never build them inside the production LXC. The wrapper hash sent by CI must match the installed forced command before deployment begins. See [ADR-010](../docs/7-DEVELOPMENT/decisions/ADR-010-ci-driven-production-deploy.md).
+
 ## The Confidence Process
 
 Releases keep getting bigger; ad-hoc verification does not scale. Before
