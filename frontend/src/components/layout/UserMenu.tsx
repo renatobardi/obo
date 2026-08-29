@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { Check, ChevronsUpDown, LogOut, Monitor, Moon, Sun, User, Users } from 'lucide-react'
+import { Check, ChevronsUpDown, Languages, LogOut, Palette, User, Users } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useCurrentUser } from '@/lib/hooks/use-current-user'
-import { useTheme, type Theme } from '@/lib/stores/theme-store'
+import { useTheme } from '@/lib/stores/theme-store'
 import { useTranslation } from '@/lib/hooks/use-translation'
+import { LANGUAGE_OPTIONS, THEME_OPTIONS } from '@/lib/i18n-options'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,29 +28,6 @@ import {
 interface UserMenuProps {
   isCollapsed?: boolean
 }
-
-const THEME_OPTIONS: { value: Theme; labelKey: string; icon: typeof Sun }[] = [
-  { value: 'light', labelKey: 'common.light', icon: Sun },
-  { value: 'dark', labelKey: 'common.dark', icon: Moon },
-  { value: 'system', labelKey: 'common.system', icon: Monitor },
-]
-
-const LOCALE_OPTIONS: { code: string; labelKey: string }[] = [
-  { code: 'en-US', labelKey: 'common.english' },
-  { code: 'ca-ES', labelKey: 'common.catalan' },
-  { code: 'de-DE', labelKey: 'common.german' },
-  { code: 'es-ES', labelKey: 'common.spanish' },
-  { code: 'fr-FR', labelKey: 'common.french' },
-  { code: 'it-IT', labelKey: 'common.italian' },
-  { code: 'ja-JP', labelKey: 'common.japanese' },
-  { code: 'pl-PL', labelKey: 'common.polish' },
-  { code: 'pt-BR', labelKey: 'common.portuguese' },
-  { code: 'ru-RU', labelKey: 'common.russian' },
-  { code: 'tr-TR', labelKey: 'common.turkish' },
-  { code: 'zh-CN', labelKey: 'common.chinese' },
-  { code: 'zh-TW', labelKey: 'common.traditionalChinese' },
-  { code: 'bn-IN', labelKey: 'common.bengali' },
-]
 
 export function UserMenu({ isCollapsed = false }: UserMenuProps) {
   const user = useCurrentUser()
@@ -114,7 +92,7 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
       >
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <Sun className="h-4 w-4" />
+            <Palette className="h-4 w-4" />
             {t('common.theme')}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
@@ -133,11 +111,11 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="gap-2">
-            <Monitor className="h-4 w-4" />
+            <Languages className="h-4 w-4" />
             {t('common.language')}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
-            {LOCALE_OPTIONS.map(({ code, labelKey }) => (
+            {LANGUAGE_OPTIONS.map(({ code, labelKey }) => (
               <DropdownMenuItem
                 key={code}
                 onClick={() => setLanguage(code)}

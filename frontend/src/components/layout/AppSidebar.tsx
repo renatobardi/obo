@@ -37,15 +37,19 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-type NavItem = { name: string; href: string; icon: LucideIcon }
+type NavItem = {
+  name: string
+  href: string
+  icon: LucideIcon
+  iconClass: string | undefined
+}
 
 const getNavigation = (t: TFunction): NavItem[] => [
-  { name: t('navigation.sources'), href: '/sources', icon: FileText },
-  { name: t('navigation.notebooks'), href: '/notebooks', icon: Book },
-  { name: t('navigation.askAndSearch'), href: '/search', icon: Search },
-  // TODO(studio): point at the future global Studio page once it exists;
-  // for now Studio is the podcasts view.
-  { name: t('navigation.studio'), href: '/podcasts', icon: Mic },
+  { name: t('navigation.sources'), href: '/sources', icon: FileText, iconClass: undefined },
+  { name: t('navigation.notebooks'), href: '/notebooks', icon: Book, iconClass: undefined },
+  { name: t('navigation.askAndSearch'), href: '/search', icon: Search, iconClass: undefined },
+  // TODO(studio): repoint at the future global Studio page; today Studio is the podcasts view.
+  { name: t('navigation.studio'), href: '/podcasts', icon: Mic, iconClass: undefined },
 ]
 
 type CreateTarget = 'source' | 'notebook' | 'podcast'
@@ -53,6 +57,12 @@ type CreateTarget = 'source' | 'notebook' | 'podcast'
 export function AppSidebar() {
   const { t } = useTranslation()
   const navigation = getNavigation(t)
+  const settingsItem: NavItem = {
+    name: t('navigation.settings'),
+    href: '/settings',
+    icon: Settings,
+    iconClass: undefined,
+  }
   const pathname = usePathname()
   const { isCollapsed, toggleCollapse } = useSidebarStore()
   const { openSourceDialog, openNotebookDialog, openPodcastDialog } = useCreateDialogs()
@@ -77,8 +87,12 @@ export function AppSidebar() {
     }
   }
 
-  const renderNavItem = (item: NavItem) => {
-    const isActive = pathname?.startsWith(item.href) || false
+  // `exact` keeps "Settings" from lighting up on its own sub-routes
+  // (/settings/members, /settings/profile) now that it sits alone in the footer.
+  const renderNavItem = (item: NavItem, exact = false) => {
+    const isActive = exact
+      ? pathname === item.href
+      : pathname?.startsWith(item.href) || false
     const button = (
       <Button
         variant="ghost"
@@ -89,7 +103,7 @@ export function AppSidebar() {
           isCollapsed ? 'justify-center px-2' : 'justify-start'
         )}
       >
-        <item.icon className="h-4 w-4 opacity-85" />
+        <item.icon className={cn('h-4 w-4 opacity-85', item.iconClass)} />
         {!isCollapsed && <span>{item.name}</span>}
       </Button>
     )
@@ -98,7 +112,9 @@ export function AppSidebar() {
       return (
         <Tooltip key={item.name}>
           <TooltipTrigger asChild>
-            <Link href={item.href}>{button}</Link>
+            <Link href={item.href}>
+              {button}
+            </Link>
           </TooltipTrigger>
           <TooltipContent side="right">{item.name}</TooltipContent>
         </Tooltip>
@@ -160,9 +176,17 @@ export function AppSidebar() {
         </div>
 
         <nav
-          className={cn('flex-1 space-y-1 py-4', isCollapsed ? 'px-2' : 'px-3')}
+          className={cn(
+            'flex-1 space-y-1 py-4',
+            isCollapsed ? 'px-2' : 'px-3'
+          )}
         >
-          <div className={cn('mb-4', isCollapsed ? 'px-0' : 'px-3')}>
+          <div
+            className={cn(
+              'mb-4',
+              isCollapsed ? 'px-0' : 'px-3'
+            )}
+          >
             <DropdownMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen}>
               {isCollapsed ? (
                 <Tooltip>
@@ -179,7 +203,7 @@ export function AppSidebar() {
                       </Button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{t('common.create')}</TooltipContent>
+                   <TooltipContent side="right">{t('common.create')}</TooltipContent>
                 </Tooltip>
               ) : (
                 <DropdownMenuTrigger asChild>
@@ -188,7 +212,7 @@ export function AppSidebar() {
                     variant="default"
                     size="sm"
                     className="w-full justify-start font-display font-bold"
-                  >
+                   >
                     <Plus className="h-4 w-4 mr-2" />
                     {t('common.create')}
                   </Button>
@@ -207,7 +231,7 @@ export function AppSidebar() {
                   }}
                   className="gap-2"
                 >
-                  <FileText className="h-4 w-4" />
+                   <FileText className="h-4 w-4" />
                   {t('common.source')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -217,7 +241,7 @@ export function AppSidebar() {
                   }}
                   className="gap-2"
                 >
-                  <Book className="h-4 w-4" />
+                   <Book className="h-4 w-4" />
                   {t('common.notebook')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -227,14 +251,16 @@ export function AppSidebar() {
                   }}
                   className="gap-2"
                 >
-                  <Mic className="h-4 w-4" />
+                   <Mic className="h-4 w-4" />
                   {t('common.podcast')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          <div className="space-y-1">{navigation.map(renderNavItem)}</div>
+          <div className="space-y-1">
+            {navigation.map((item) => renderNavItem(item))}
+          </div>
         </nav>
 
         <div
@@ -247,7 +273,7 @@ export function AppSidebar() {
           {!isCollapsed && (
             <div className="px-3 py-1.5 text-xs text-sidebar-foreground/60">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
+                 <span className="flex items-center gap-1.5">
                   <Command className="h-3 w-3" />
                   {t('common.quickActions')}
                 </span>
@@ -255,17 +281,13 @@ export function AppSidebar() {
                   {isMac ? <span className="text-xs">⌘</span> : <span>Ctrl+</span>}K
                 </kbd>
               </div>
-              <p className="mt-1 text-[10px] text-sidebar-foreground/40">
+               <p className="mt-1 text-[10px] text-sidebar-foreground/40">
                 {t('common.quickActionsDesc')}
               </p>
             </div>
           )}
 
-          {renderNavItem({
-            name: t('navigation.settings'),
-            href: '/settings',
-            icon: Settings,
-          })}
+          {renderNavItem(settingsItem, true)}
 
           <UserMenu isCollapsed={isCollapsed} />
         </div>
