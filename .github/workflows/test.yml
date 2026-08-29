@@ -157,17 +157,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-  deploy-production:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs:
-      - backend
-      - backend-lint
-      - backend-typecheck
-      - frontend
-      - frontend-lint
-      - frontend-build
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/deploy-prd.yml

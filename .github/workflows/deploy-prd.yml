@@ -1,15 +1,25 @@
 name: Deploy Production
 
 on:
-  workflow_call:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
 
 concurrency:
   group: production
   cancel-in-progress: false
 
+env:
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+
 jobs:
   build:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 30
     permissions:
@@ -20,6 +30,8 @@ jobs:
     steps:
       - name: Checkout tested revision
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Validate Firebase configuration
         env:
@@ -37,7 +49,7 @@ jobs:
         id: image
         env:
           GHCR_IMAGE: ghcr.io/renatobardi/obo
-        run: echo "ref=${GHCR_IMAGE}:prd-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+        run: echo "ref=${GHCR_IMAGE}:prd-${DEPLOY_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
@@ -79,6 +91,8 @@ jobs:
     steps:
       - name: Checkout tested revision
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
 
       - name: Connect to Tailscale
         uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8
