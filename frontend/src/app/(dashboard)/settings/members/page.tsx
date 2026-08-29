@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -46,14 +45,8 @@ export default function MembersPage() {
   }
 
   return (
-    <AppShell>
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          <div className="max-w-4xl">
-            <h1 className="font-display text-2xl font-bold tracking-tight mb-6">
-              {t('navigation.members')}
-            </h1>
-
+    <div className="p-6">
+      <div className="max-w-4xl">
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -159,9 +152,7 @@ export default function MembersPage() {
                 )}
               </CardContent>
             </Card>
-          </div>
-        </div>
       </div>
-    </AppShell>
+    </div>
   )
 }

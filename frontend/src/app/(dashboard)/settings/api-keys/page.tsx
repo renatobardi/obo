@@ -1,10 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
-import { AppShell } from '@/components/layout/AppShell'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { Key, ShieldAlert, AlertCircle } from 'lucide-react'
+import { ShieldAlert, AlertCircle } from 'lucide-react'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { useModels, useModelDefaults } from '@/lib/hooks/use-models'
 import {
@@ -77,26 +76,15 @@ export default function ApiKeysPage() {
 
   if (isLoading) {
     return (
-      <AppShell>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <LoadingSpinner size="lg" />
-        </div>
-      </AppShell>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <LoadingSpinner size="lg" />
+      </div>
     )
   }
 
   return (
-    <AppShell>
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-6 space-y-6">
-          {/* Header */}
-          <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Key className="h-5 w-5 text-muted-foreground" />
-              {t('apiKeys.title')}
-            </h1>
-            <p className="text-muted-foreground mt-1">{t('apiKeys.description')}</p>
-          </div>
+    <div className="p-6 space-y-6">
+      <p className="text-muted-foreground">{t('apiKeys.description')}</p>
 
           {/* Encryption warning */}
           {!encryptionReady && (
@@ -153,8 +141,6 @@ export default function ApiKeysPage() {
               {t('apiKeys.learnMore')}
             </a>
           </div>
-        </div>
-      </div>
-    </AppShell>
+    </div>
   )
 }
