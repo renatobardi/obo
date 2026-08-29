@@ -51,12 +51,33 @@ describe('NotebookEmptyState', () => {
 
   it('opens the upload tab with the dropped files when files are dropped', () => {
     render(<NotebookEmptyState notebookId="notebook:1" />)
-    const zone = screen.getByText('sources.dropFilesHere').parentElement as HTMLElement
     const file = new File(['x'], 'a.pdf', { type: 'application/pdf' })
-    fireEvent.drop(zone, { dataTransfer: { files: [file] } })
+    fireEvent.drop(screen.getByTestId('notebook-empty-dropzone'), {
+      dataTransfer: { files: [file] },
+    })
     const dialog = screen.getByTestId('add-source-dialog')
     expect(dialog).toHaveAttribute('data-type', 'upload')
     expect(dialog).toHaveAttribute('data-files', '1')
+  })
+
+  it('a drop after a non-upload CTA still opens on upload with the files', () => {
+    render(<NotebookEmptyState notebookId="notebook:1" />)
+    fireEvent.click(screen.getByRole('button', { name: 'sources.pasteLink' }))
+    fireEvent.drop(screen.getByTestId('notebook-empty-dropzone'), {
+      dataTransfer: { files: [new File(['x'], 'a.pdf')] },
+    })
+    const dialog = screen.getByTestId('add-source-dialog')
+    expect(dialog).toHaveAttribute('data-type', 'upload')
+    expect(dialog).toHaveAttribute('data-files', '1')
+  })
+
+  it('a later CTA does not carry the previous drop\'s files', () => {
+    render(<NotebookEmptyState notebookId="notebook:1" />)
+    fireEvent.drop(screen.getByTestId('notebook-empty-dropzone'), {
+      dataTransfer: { files: [new File(['x'], 'a.pdf')] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'sources.chooseFiles' }))
+    expect(screen.getByTestId('add-source-dialog')).toHaveAttribute('data-files', '0')
   })
 
   it('opens AddExistingSourceDialog from the reuse link', () => {

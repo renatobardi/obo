@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { AddSourceDialog } from '@/components/sources/AddSourceDialog'
 import { AddExistingSourceDialog } from '@/components/sources/AddExistingSourceDialog'
 import { useTranslation } from '@/lib/hooks/use-translation'
-import { cn } from '@/lib/utils'
 
 type SourceType = 'link' | 'upload' | 'text'
 
@@ -20,9 +19,9 @@ export function NotebookEmptyState({ notebookId }: NotebookEmptyStateProps) {
   const [addExistingOpen, setAddExistingOpen] = useState(false)
   const [dialogType, setDialogType] = useState<SourceType>('upload')
   const [droppedFiles, setDroppedFiles] = useState<File[]>([])
-  const [isDragging, setIsDragging] = useState(false)
 
-  const openAdd = (type: SourceType) => {
+  const openAdd = (type: SourceType, files: File[] = []) => {
+    setDroppedFiles(files)
     setDialogType(type)
     setAddOpen(true)
   }
@@ -34,12 +33,9 @@ export function NotebookEmptyState({ notebookId }: NotebookEmptyStateProps) {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
-    setIsDragging(false)
     const files = Array.from(e.dataTransfer.files)
     if (files.length === 0) return
-    setDroppedFiles(files)
-    setDialogType('upload')
-    setAddOpen(true)
+    openAdd('upload', files)
   }
 
   return (
@@ -49,16 +45,10 @@ export function NotebookEmptyState({ notebookId }: NotebookEmptyStateProps) {
         <p className="mt-2 text-muted-foreground">{t('notebooks.emptyDesc')}</p>
 
         <div
-          onDragOver={(e) => {
-            e.preventDefault()
-            setIsDragging(true)
-          }}
-          onDragLeave={() => setIsDragging(false)}
+          data-testid="notebook-empty-dropzone"
+          onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className={cn(
-            'mt-8 rounded-lg border-2 border-dashed p-8 transition-colors',
-            isDragging ? 'border-primary bg-primary/5' : 'border-border'
-          )}
+          className="mt-8 rounded-lg border-2 border-dashed border-border p-8"
         >
           <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-3 font-medium">{t('sources.dropFilesHere')}</p>

@@ -146,7 +146,9 @@ export function AddSourceDialog({
     },
   })
 
-  // Initialize form values when settings and transformations are loaded
+  // Apply settings-derived defaults once settings/transformations load. Targeted
+  // setValue rather than reset() so it can't wipe a type/file the caller
+  // pre-selected (the empty-state CTAs and dropzone set those on open).
   useEffect(() => {
     if (settings && transformations.length > 0) {
       const defaultTransformations = transformations
@@ -155,32 +157,23 @@ export function AddSourceDialog({
 
       setSelectedTransformations(defaultTransformations)
 
-      // Reset form with proper embed value based on settings
       const embedValue = settings.default_embedding_option === 'always' ||
                          (settings.default_embedding_option === 'ask')
 
-      reset({
-        type: defaultType,
-        notebooks: defaultNotebookId ? [defaultNotebookId] : [],
-        embed: embedValue,
-        async_processing: true,
-        transformations: [],
-      })
+      setValue('embed', embedValue)
     }
-  }, [settings, transformations, defaultNotebookId, defaultType, reset])
+  }, [settings, transformations, setValue])
 
-  // Sync an externally-driven type / dropped files onto the form each time the
-  // dialog opens (the empty-state CTAs and its dropzone use these).
+  // Single initializer for type / dropped files each time the dialog opens.
   useEffect(() => {
     if (!open) return
-    if (defaultType) {
-      setValue('type', defaultType)
-    }
     if (initialFiles && initialFiles.length > 0) {
       const dt = new DataTransfer()
       initialFiles.forEach(file => dt.items.add(file))
       setValue('type', 'upload')
       setValue('file', dt.files, { shouldValidate: true })
+    } else if (defaultType) {
+      setValue('type', defaultType)
     }
   }, [open, defaultType, initialFiles, setValue])
 
