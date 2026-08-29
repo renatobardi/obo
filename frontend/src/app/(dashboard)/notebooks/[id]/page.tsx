@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { NotebookHeader } from '../components/NotebookHeader'
 import { SourcesColumn } from '../components/SourcesColumn'
 import { NotesColumn } from '../components/NotesColumn'
 import { ChatColumn } from '../components/ChatColumn'
+import { StudioPanel } from '@/components/studio/StudioPanel'
 import { useNotebook } from '@/lib/hooks/use-notebooks'
 import { useNotebookSources } from '@/lib/hooks/use-sources'
 import { useNotes } from '@/lib/hooks/use-notes'
@@ -16,7 +17,7 @@ import { useIsDesktop } from '@/lib/hooks/use-media-query'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { cn } from '@/lib/utils'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { FileText, StickyNote, MessageSquare } from 'lucide-react'
+import { FileText, StickyNote, MessageSquare, Sparkles } from 'lucide-react'
 import {
   applyBulkSourceContext,
   applyBulkNoteContext,
@@ -57,7 +58,7 @@ export default function NotebookPage() {
   const isDesktop = useIsDesktop()
 
   // Mobile tab state (Sources, Notes, or Chat)
-  const [mobileActiveTab, setMobileActiveTab] = useState<'sources' | 'notes' | 'chat'>('chat')
+  const [mobileActiveTab, setMobileActiveTab] = useState<'sources' | 'notes' | 'chat' | 'studio'>('chat')
 
   // Context selection state
   const [contextSelections, setContextSelections] = useState<ContextSelections>({
@@ -91,6 +92,13 @@ export default function NotebookPage() {
       }))
     }
   }, [notes, noteContextDefault])
+
+  // Context handed to the Studio panel — the same source/note selections that
+  // drive the chat context, so a generated artifact reflects what's toggled on.
+  const studioContext = useMemo(
+    () => ({ sources: contextSelections.sources, notes: contextSelections.notes }),
+    [contextSelections]
+  )
 
   const handleSourceContextModeChange = (sourceId: string, mode: ContextMode) => {
     setContextSelections(prev => ({
@@ -163,8 +171,8 @@ export default function NotebookPage() {
           {!isDesktop && (
             <>
               <div className="lg:hidden mb-4">
-                <Tabs value={mobileActiveTab} onValueChange={(value) => setMobileActiveTab(value as 'sources' | 'notes' | 'chat')}>
-                  <TabsList className="grid w-full grid-cols-3">
+                <Tabs value={mobileActiveTab} onValueChange={(value) => setMobileActiveTab(value as 'sources' | 'notes' | 'chat' | 'studio')}>
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="sources" className="gap-2">
                       <FileText className="h-4 w-4" />
                       {t('navigation.sources')}
@@ -176,6 +184,10 @@ export default function NotebookPage() {
                     <TabsTrigger value="chat" className="gap-2">
                       <MessageSquare className="h-4 w-4" />
                       {t('common.chat')}
+                    </TabsTrigger>
+                    <TabsTrigger value="studio" className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      {t('navigation.studio')}
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -216,6 +228,9 @@ export default function NotebookPage() {
                     sourcesLoading={sourcesLoading}
                   />
                 )}
+                {mobileActiveTab === 'studio' && (
+                  <StudioPanel notebookId={notebookId} context={studioContext} />
+                )}
               </div>
             </>
           )}
@@ -228,7 +243,7 @@ export default function NotebookPage() {
             {/* Sources Column */}
             <div className={cn(
               'transition-all duration-150',
-              sourcesCollapsed ? 'w-12 flex-shrink-0' : 'flex-none basis-1/3'
+              sourcesCollapsed ? 'w-12 flex-shrink-0' : 'flex-none basis-1/4'
             )}>
               <SourcesColumn
                 sources={sources}
@@ -248,7 +263,7 @@ export default function NotebookPage() {
             {/* Notes Column */}
             <div className={cn(
               'transition-all duration-150',
-              notesCollapsed ? 'w-12 flex-shrink-0' : 'flex-none basis-1/3'
+              notesCollapsed ? 'w-12 flex-shrink-0' : 'flex-none basis-1/4'
             )}>
               <NotesColumn
                 notes={notes}
@@ -268,6 +283,11 @@ export default function NotebookPage() {
                 sources={sources}
                 sourcesLoading={sourcesLoading}
               />
+            </div>
+
+            {/* Studio Column */}
+            <div className="transition-all duration-150 w-[312px] flex-shrink-0">
+              <StudioPanel notebookId={notebookId} context={studioContext} />
             </div>
           </div>
         </div>
