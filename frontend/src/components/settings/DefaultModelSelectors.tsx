@@ -50,10 +50,11 @@ function DefaultModelSelect({
   const isValid = currentValue && available.some(m => m.id === currentValue)
   const hasAvailableModels = available.length > 0
 
+  const noAvailableModelsHint = !hasAvailableModels ? t('models.autoAssignNoModels') : null
+
   // Hint shown when an optional slot is left empty, clarifying the effective
   // behavior (chat-model fallback vs. feature unavailable) — see #1098.
   const emptyOptionalHint = (() => {
-    if (!hasAvailableModels) return t('models.autoAssignNoModels')
     if (config.required || currentValue) return null
     if (config.fallsBackToChat) {
       return chatModelName
@@ -64,6 +65,7 @@ function DefaultModelSelect({
     if (config.modelType === 'speech_to_text') return t('models.sttUnsetHint')
     return null
   })()
+  const selectorHint = noAvailableModelsHint || emptyOptionalHint
 
   return (
     <div className="space-y-1">
@@ -78,7 +80,7 @@ function DefaultModelSelect({
         >
           <SelectTrigger
             id={config.id}
-            aria-describedby={emptyOptionalHint ? `${config.id}-hint` : undefined}
+            aria-describedby={selectorHint ? `${config.id}-hint` : undefined}
             disabled={!hasAvailableModels}
             className={`h-8 text-xs ${config.required && !isValid && hasAvailableModels ? 'border-destructive' : ''}`}
           >
@@ -114,8 +116,8 @@ function DefaultModelSelect({
           </Button>
         )}
       </div>
-      {emptyOptionalHint && (
-        <p id={`${config.id}-hint`} className="text-[10px] text-muted-foreground leading-tight italic">{emptyOptionalHint}</p>
+      {selectorHint && (
+        <p id={`${config.id}-hint`} className="text-[10px] text-muted-foreground leading-tight italic">{selectorHint}</p>
       )}
       {showDescription && (
         <p className="text-[10px] text-muted-foreground leading-tight">{config.description}</p>
