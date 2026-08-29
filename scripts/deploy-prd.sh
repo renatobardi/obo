@@ -56,6 +56,28 @@ wait_for_public_health() {
   return 1
 }
 
+cleanup_images() {
+  local latest_id previous_id line
+  latest_id=$(docker image inspect -f '{{.Id}}' "$LOCAL_IMAGE")
+  previous_id=$(docker image inspect -f '{{.Id}}' "$PREVIOUS_IMAGE" 2>/dev/null || true)
+
+  while IFS= read -r line; do
+    [[ -z "$line" || "$line" == "<none>:<none>" ]] && continue
+    local repo tag
+    repo="${line%:*}"
+    tag="${line#*:}"
+    if [[ "$repo" == "ghcr.io/renatobardi/obo" && "$tag" =~ ^prd- ]]; then
+      local id
+      id=$(docker image inspect -f '{{.Id}}' "$line" 2>/dev/null || true) || id=""
+      if [[ -n "$id" && "$id" != "$latest_id" && "$id" != "$previous_id" ]]; then
+        docker rmi "$line" >/dev/null 2>&1 || true
+      fi
+    fi
+  done < <(docker image ls --format '{{.Repository}}:{{.Tag}}')
+
+  docker image prune -f >/dev/null 2>&1 || true
+}
+
 recreate_service() {
   docker compose \
     --env-file "$COMPOSE_ENV_FILE" \
@@ -97,5 +119,7 @@ if ! wait_for_internal_health || ! wait_for_public_health; then
   rollback || true
   exit 1
 fi
+
+cleanup_images || true
 
 echo "Deployment healthy: $IMAGE"

@@ -26,14 +26,31 @@ if [[ "$*" == "inspect -f {{.Image}} obo-obo-1" ]]; then
   if [[ -f "$COMMAND_STATE" ]]; then echo "${RUNNING_IMAGE:-sha256:new}"; else echo sha256:previous; fi
 elif [[ "$*" == "image inspect "*" --format {{.Architecture}}" ]]; then
   echo "${IMAGE_ARCHITECTURE:-arm64}"
+elif [[ "$*" == "image inspect -f {{.Id}} obo-prd-firebase:latest" ]]; then
+  echo "${LATEST_IMAGE_ID:-sha256:new}"
+elif [[ "$*" == "image inspect -f {{.Id}} obo-prd-firebase:previous" ]]; then
+  echo "${PREVIOUS_IMAGE_ID:-sha256:previous}"
+elif [[ "$*" == "image inspect -f {{.Id}} ghcr.io/renatobardi/obo:prd-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ]]; then
+  echo "${LATEST_IMAGE_ID:-sha256:new}"
+elif [[ "$*" == "image inspect -f {{.Id}} "*"@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ]]; then
+  echo "${LATEST_IMAGE_ID:-sha256:new}"
 elif [[ "$*" == "image inspect -f {{.Id}} "* ]]; then
-  echo sha256:new
+  echo "${OLD_IMAGE_ID:-sha256:old}"
 elif [[ "$*" == "tag sha256:previous "* ]]; then
   rm -f "$COMMAND_STATE"
 elif [[ "$*" == "tag ghcr.io/"* ]]; then
   touch "$COMMAND_STATE"
 elif [[ "$*" == "exec obo-obo-1 curl -fsS http://127.0.0.1:5055/health" ]]; then
   exit "${INTERNAL_HEALTH_EXIT:-0}"
+elif [[ "$*" == "image ls --format {{.Repository}}:{{.Tag}}" ]]; then
+  echo "ghcr.io/renatobardi/obo:prd-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  echo "ghcr.io/renatobardi/obo:prd-old00000000000000000000000000000000000000"
+  echo "obo-prd-firebase:latest"
+  echo "obo-prd-firebase:previous"
+elif [[ "$*" == "image prune -f" ]]; then
+  exit 0
+elif [[ "$*" == "rmi "* ]]; then
+  exit 0
 fi
 """
     )
@@ -131,6 +148,19 @@ def test_rolls_back_when_public_health_check_fails(tmp_path: Path) -> None:
     commands = log.read_text()
     assert "tag sha256:previous obo-prd-firebase:latest" in commands
     assert commands.count(COMPOSE_COMMAND) == 2
+
+
+def test_removes_old_production_images_after_successful_deploy(tmp_path: Path) -> None:
+    bin_dir, log = make_fake_commands(tmp_path)
+
+    result = run_deploy(bin_dir, log)
+
+    assert result.returncode == 0, result.stderr
+    commands = log.read_text()
+    assert "rmi ghcr.io/renatobardi/obo:prd-old00000000000000000000000000000000000000" in commands
+    assert "image prune -f" in commands
+    assert "rmi obo-prd-firebase:latest" not in commands
+    assert "rmi obo-prd-firebase:previous" not in commands
 
 
 def test_host_wrapper_accepts_only_matching_versioned_input(tmp_path: Path) -> None:
