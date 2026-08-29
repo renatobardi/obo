@@ -418,6 +418,7 @@ export const bnIN = {
     retry: "আবার চেষ্টা",
     addExistingTitle: "বিদ্যমান উৎস যোগ করুন",
     addExistingDesc: "বর্তমানে যোগ করতে আপনার সব নোটবুক থেকে বিদ্যমান উৎস নির্বাচন করুন।",
+    reuseFromOtherNotebook: "অন্য নোটবুকের একটি উৎস পুনরায় ব্যবহার করুন",
     dropFilesHere: "এখানে ফাইল ছেড়ে দিন",
     supportedFormats: "PDF, টেক্সট, Markdown, অডিও, ভিডিও বা একটি ওয়েব লিঙ্ক",
     chooseFiles: "ফাইল নির্বাচন করুন",

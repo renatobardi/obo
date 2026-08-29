@@ -418,6 +418,7 @@ export const zhCN = {
     retry: "重试",
     addExistingTitle: "添加现有来源",
     addExistingDesc: "从您的所有笔记本中选择已有的来源添加到当前笔记本。",
+    reuseFromOtherNotebook: "复用其他笔记本中的来源",
     dropFilesHere: "将文件拖放到此处",
     supportedFormats: "PDF、文本、Markdown、音频、视频或网页链接",
     chooseFiles: "选择文件",

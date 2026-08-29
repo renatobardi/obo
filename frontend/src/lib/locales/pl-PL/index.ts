@@ -418,6 +418,7 @@ export const plPL = {
     retry: "Ponów",
     addExistingTitle: "Dodaj istniejące źródła",
     addExistingDesc: "Wybierz istniejące źródła ze wszystkich notatników, aby dodać je do bieżącego.",
+    reuseFromOtherNotebook: "Użyj ponownie źródła z innego notatnika",
     dropFilesHere: "Upuść pliki tutaj",
     supportedFormats: "PDF, tekst, Markdown, audio, wideo lub link internetowy",
     chooseFiles: "Wybierz pliki",

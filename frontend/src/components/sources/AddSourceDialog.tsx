@@ -71,6 +71,10 @@ interface AddSourceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultNotebookId?: string
+  /** Pre-select a source type tab when the dialog opens. */
+  defaultType?: 'link' | 'upload' | 'text'
+  /** Files to pre-load into the upload tab (e.g. dropped onto an empty state). */
+  initialFiles?: File[]
 }
 
 interface ProcessingState {
@@ -85,10 +89,12 @@ interface BatchProgress {
   currentItem?: string
 }
 
-export function AddSourceDialog({ 
-  open, 
-  onOpenChange, 
-  defaultNotebookId 
+export function AddSourceDialog({
+  open,
+  onOpenChange,
+  defaultNotebookId,
+  defaultType,
+  initialFiles,
 }: AddSourceDialogProps) {
   const { t } = useTranslation()
 
@@ -132,6 +138,7 @@ export function AddSourceDialog({
   } = useForm<CreateSourceFormData>({
     resolver: zodResolver(createSourceSchema),
     defaultValues: {
+      type: defaultType,
       notebooks: defaultNotebookId ? [defaultNotebookId] : [],
       embed: settings?.default_embedding_option === 'always' || settings?.default_embedding_option === 'ask',
       async_processing: true,
@@ -153,13 +160,29 @@ export function AddSourceDialog({
                          (settings.default_embedding_option === 'ask')
 
       reset({
+        type: defaultType,
         notebooks: defaultNotebookId ? [defaultNotebookId] : [],
         embed: embedValue,
         async_processing: true,
         transformations: [],
       })
     }
-  }, [settings, transformations, defaultNotebookId, reset])
+  }, [settings, transformations, defaultNotebookId, defaultType, reset])
+
+  // Sync an externally-driven type / dropped files onto the form each time the
+  // dialog opens (the empty-state CTAs and its dropzone use these).
+  useEffect(() => {
+    if (!open) return
+    if (defaultType) {
+      setValue('type', defaultType)
+    }
+    if (initialFiles && initialFiles.length > 0) {
+      const dt = new DataTransfer()
+      initialFiles.forEach(file => dt.items.add(file))
+      setValue('type', 'upload')
+      setValue('file', dt.files, { shouldValidate: true })
+    }
+  }, [open, defaultType, initialFiles, setValue])
 
   // Cleanup effect
   useEffect(() => {

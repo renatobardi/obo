@@ -418,6 +418,7 @@ export const esES = {
     retry: "Reintentar",
     addExistingTitle: "Agregar fuentes existentes",
     addExistingDesc: "Selecciona fuentes existentes de todos tus cuadernos para agregar al actual.",
+    reuseFromOtherNotebook: "Reutilizar una fuente de otro cuaderno",
     dropFilesHere: "Suelta los archivos aquí",
     supportedFormats: "PDF, texto, Markdown, audio, vídeo o un enlace web",
     chooseFiles: "Elegir archivos",

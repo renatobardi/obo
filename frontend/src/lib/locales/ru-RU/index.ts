@@ -418,6 +418,7 @@ export const ruRU = {
     retry: "Повторить",
     addExistingTitle: "Добавить существующие источники",
     addExistingDesc: "Выберите существующие источники из всех блокнотов для добавления в текущий.",
+    reuseFromOtherNotebook: "Использовать источник из другого блокнота",
     dropFilesHere: "Перетащите файлы сюда",
     supportedFormats: "PDF, текст, Markdown, аудио, видео или веб-ссылка",
     chooseFiles: "Выбрать файлы",

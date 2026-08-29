@@ -421,6 +421,7 @@ export const deDE = {
     retry: "Erneut versuchen",
     addExistingTitle: "Vorhandene Quellen hinzufügen",
     addExistingDesc: "Wähle vorhandene Quellen aus allen Notebooks aus, um sie dem aktuellen Notebook hinzuzufügen.",
+    reuseFromOtherNotebook: "Eine Quelle aus einem anderen Notebook wiederverwenden",
     dropFilesHere: "Dateien hier ablegen",
     supportedFormats: "PDF, Text, Markdown, Audio, Video oder ein Weblink",
     chooseFiles: "Dateien auswählen",

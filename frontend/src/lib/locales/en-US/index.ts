@@ -416,6 +416,7 @@ export const enUS = {
     retry: "Retry",
     addExistingTitle: "Add Existing Sources",
     addExistingDesc: "Select existing sources from across all your notebooks to add to the current one.",
+    reuseFromOtherNotebook: "Reuse a source from another notebook",
     dropFilesHere: "Drop files here",
     supportedFormats: "PDF, text, Markdown, audio, video, or a web link",
     chooseFiles: "Choose files",

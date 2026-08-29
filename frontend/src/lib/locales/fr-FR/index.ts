@@ -418,6 +418,7 @@ export const frFR = {
     retry: "Réessayer",
     addExistingTitle: "Ajouter des sources existantes",
     addExistingDesc: "Sélectionnez des sources existantes parmi tous vos carnets pour les ajouter au carnet actuel.",
+    reuseFromOtherNotebook: "Réutiliser une source d'un autre carnet",
     dropFilesHere: "Déposez les fichiers ici",
     supportedFormats: "PDF, texte, Markdown, audio, vidéo ou un lien web",
     chooseFiles: "Choisir des fichiers",

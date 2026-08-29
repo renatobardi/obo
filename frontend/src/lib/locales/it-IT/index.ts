@@ -418,6 +418,7 @@ export const itIT = {
     retry: "Riprova",
     addExistingTitle: "Aggiungi fonti esistenti",
     addExistingDesc: "Seleziona fonti esistenti da tutti i tuoi quaderni per aggiungerle a quello corrente.",
+    reuseFromOtherNotebook: "Riutilizza una fonte da un altro quaderno",
     dropFilesHere: "Trascina i file qui",
     supportedFormats: "PDF, testo, Markdown, audio, video o un link web",
     chooseFiles: "Scegli i file",
