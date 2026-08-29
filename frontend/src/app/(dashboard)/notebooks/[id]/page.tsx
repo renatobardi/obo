@@ -97,7 +97,7 @@ export default function NotebookPage() {
   // drive the chat context, so a generated artifact reflects what's toggled on.
   const studioContext = useMemo(
     () => ({ sources: contextSelections.sources, notes: contextSelections.notes }),
-    [contextSelections]
+    [contextSelections.sources, contextSelections.notes]
   )
 
   const handleSourceContextModeChange = (sourceId: string, mode: ContextMode) => {

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/utils/error-handler'
+import { noteModeToContextStatus, sourceModeToContextStatus } from '@/lib/utils/source-context'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import { chatApi } from '@/lib/api/chat'
 import { QUERY_KEYS } from '@/lib/api/query-client'
@@ -139,24 +140,12 @@ export function useNotebookChat({ notebookId, sources, notes, contextSelections 
 
     // Map source selections
     sources.forEach(source => {
-      const mode = contextSelections.sources[source.id]
-      if (mode === 'insights') {
-        context_config.sources[source.id] = 'insights'
-      } else if (mode === 'full') {
-        context_config.sources[source.id] = 'full content'
-      } else {
-        context_config.sources[source.id] = 'not in'
-      }
+      context_config.sources[source.id] = sourceModeToContextStatus(contextSelections.sources[source.id])
     })
 
     // Map note selections
     notes.forEach(note => {
-      const mode = contextSelections.notes[note.id]
-      if (mode === 'full') {
-        context_config.notes[note.id] = 'full content'
-      } else {
-        context_config.notes[note.id] = 'not in'
-      }
+      context_config.notes[note.id] = noteModeToContextStatus(contextSelections.notes[note.id])
     })
 
     // Call API to build context with actual content

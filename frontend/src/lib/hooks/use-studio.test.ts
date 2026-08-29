@@ -7,7 +7,7 @@ import { useRunStudioKind } from './use-studio'
 import { transformationsApi } from '@/lib/api/transformations'
 import { chatApi } from '@/lib/api/chat'
 import { notesApi } from '@/lib/api/notes'
-import { STUDIO_KINDS } from '@/lib/studio/kinds'
+import { ARTIFACT_KINDS } from '@/lib/studio/kinds'
 import type { ContextSelections } from '@/lib/types/notebook-context'
 
 // useTranslation + use-toast: t returns the key; toast is a spy we can read.
@@ -26,8 +26,7 @@ vi.mock('@/lib/api/notes', () => ({
   notesApi: { create: vi.fn() },
 }))
 
-const briefing = STUDIO_KINDS.find((k) => k.id === 'briefing')!
-const podcast = STUDIO_KINDS.find((k) => k.id === 'podcast')!
+const briefing = ARTIFACT_KINDS.find((k) => k.id === 'briefing')!
 
 const context: ContextSelections = {
   sources: { 's:1': 'full', 's:2': 'insights', 's:3': 'off' },
@@ -121,14 +120,6 @@ describe('useRunStudioKind', () => {
 
     expect(vi.mocked(transformationsApi.execute).mock.calls[0][0].input_text).not.toContain('Focus:')
     expect(vi.mocked(notesApi.create).mock.calls[0][0].title).toBe('studio.untitled')
-  })
-
-  it('rejects podcast (no transformation) without calling the engine', async () => {
-    const { result } = renderHook(() => useRunStudioKind(), { wrapper })
-    await expect(
-      result.current.mutateAsync({ kind: podcast, notebookId: 'nb-1', context }),
-    ).rejects.toThrow()
-    expect(chatApi.buildContext).not.toHaveBeenCalled()
   })
 
   it('toasts a success message after saving', async () => {

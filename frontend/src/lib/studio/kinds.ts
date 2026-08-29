@@ -10,25 +10,46 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-/**
- * A Studio output type. Every kind except `podcast` runs through the shared
- * transformations engine: we look up `transformationName`, creating it from
- * `fallbackPrompt` on first use, then execute it against the notebook context.
- * Podcast keeps `transformationName: null` because it has its own generation
- * pipeline (GeneratePodcastDialog).
- */
-export interface StudioKind {
-  id: string
+export type StudioKindId =
+  | 'mindmap'
+  | 'report'
+  | 'briefing'
+  | 'faq'
+  | 'timeline'
+  | 'flashcards'
+  | 'quiz'
+  | 'podcast'
+
+interface BaseStudioKind {
+  id: StudioKindId
   labelKey: string
   descriptionKey: string
   icon: LucideIcon
-  transformationName: string | null
+}
+
+/**
+ * A Studio output that runs through the shared transformations engine: we look
+ * up `transformationName`, creating it from `fallbackPrompt` on first use, then
+ * execute it against the notebook context.
+ */
+export interface TransformationStudioKind extends BaseStudioKind {
+  engine: 'transformation'
+  transformationName: string
   fallbackPrompt: string
 }
+
+/** Podcast has its own generation pipeline (GeneratePodcastDialog). */
+export interface PodcastStudioKind extends BaseStudioKind {
+  id: 'podcast'
+  engine: 'podcast'
+}
+
+export type StudioKind = TransformationStudioKind | PodcastStudioKind
 
 export const STUDIO_KINDS: StudioKind[] = [
   {
     id: 'mindmap',
+    engine: 'transformation',
     labelKey: 'studio.kindMindmap',
     descriptionKey: 'studio.kindMindmapDesc',
     icon: Network,
@@ -38,6 +59,7 @@ export const STUDIO_KINDS: StudioKind[] = [
   },
   {
     id: 'report',
+    engine: 'transformation',
     labelKey: 'studio.kindReport',
     descriptionKey: 'studio.kindReportDesc',
     icon: FileText,
@@ -47,6 +69,7 @@ export const STUDIO_KINDS: StudioKind[] = [
   },
   {
     id: 'briefing',
+    engine: 'transformation',
     labelKey: 'studio.kindBriefing',
     descriptionKey: 'studio.kindBriefingDesc',
     icon: ClipboardList,
@@ -56,6 +79,7 @@ export const STUDIO_KINDS: StudioKind[] = [
   },
   {
     id: 'faq',
+    engine: 'transformation',
     labelKey: 'studio.kindFaq',
     descriptionKey: 'studio.kindFaqDesc',
     icon: HelpCircle,
@@ -65,6 +89,7 @@ export const STUDIO_KINDS: StudioKind[] = [
   },
   {
     id: 'timeline',
+    engine: 'transformation',
     labelKey: 'studio.kindTimeline',
     descriptionKey: 'studio.kindTimelineDesc',
     icon: CalendarClock,
@@ -74,6 +99,7 @@ export const STUDIO_KINDS: StudioKind[] = [
   },
   {
     id: 'flashcards',
+    engine: 'transformation',
     labelKey: 'studio.kindFlashcards',
     descriptionKey: 'studio.kindFlashcardsDesc',
     icon: Layers,
@@ -83,6 +109,7 @@ export const STUDIO_KINDS: StudioKind[] = [
   },
   {
     id: 'quiz',
+    engine: 'transformation',
     labelKey: 'studio.kindQuiz',
     descriptionKey: 'studio.kindQuizDesc',
     icon: GraduationCap,
@@ -92,10 +119,14 @@ export const STUDIO_KINDS: StudioKind[] = [
   },
   {
     id: 'podcast',
+    engine: 'podcast',
     labelKey: 'studio.kindPodcast',
     descriptionKey: 'studio.kindPodcastDesc',
     icon: Podcast,
-    transformationName: null,
-    fallbackPrompt: '',
   },
 ]
+
+/** The kinds handled by CreateArtifactDialog / useRunStudioKind. */
+export const ARTIFACT_KINDS: TransformationStudioKind[] = STUDIO_KINDS.filter(
+  (kind): kind is TransformationStudioKind => kind.engine === 'transformation',
+)
