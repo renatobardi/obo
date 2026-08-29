@@ -34,7 +34,7 @@ const firebaseConfig = {
 let app: FirebaseApp | null = null
 let authInstance: Auth | null = null
 
-function getFirebaseAuth(): Auth {
+export function getFirebaseAuth(): Auth {
   if (!app) {
     app = getApps()[0] ?? initializeApp(firebaseConfig)
   }
