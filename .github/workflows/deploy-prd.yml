@@ -1,0 +1,113 @@
+name: Deploy Production
+
+on:
+  workflow_call:
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      artifact: ${{ steps.image.outputs.ref }}@${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout tested revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Validate Firebase configuration
+        env:
+          FIREBASE_API_KEY: ${{ vars.PRD_FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ vars.PRD_FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ vars.PRD_FIREBASE_PROJECT_ID }}
+          FIREBASE_APP_ID: ${{ vars.PRD_FIREBASE_APP_ID }}
+        run: |
+          test -n "$FIREBASE_API_KEY"
+          test -n "$FIREBASE_AUTH_DOMAIN"
+          test -n "$FIREBASE_PROJECT_ID"
+          test -n "$FIREBASE_APP_ID"
+
+      - name: Set image reference
+        id: image
+        env:
+          GHCR_IMAGE: ghcr.io/renatobardi/obo
+        run: echo "ref=${GHCR_IMAGE}:prd-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push production image
+        id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          file: ./Dockerfile
+          target: runtime
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.image.outputs.ref }}
+          build-args: |
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ vars.PRD_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ vars.PRD_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ vars.PRD_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ vars.PRD_FIREBASE_APP_ID }}
+          cache-from: type=gha,scope=production-arm64
+          cache-to: type=gha,mode=max,scope=production-arm64
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    environment:
+      name: production
+      url: https://obo.oute.pro
+    steps:
+      - name: Checkout tested revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRD_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PRD_SSH_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/prd
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Deploy and verify
+        env:
+          ARTIFACT: ${{ needs.build.outputs.artifact }}
+          SSH_HOST: ${{ vars.PRD_SSH_HOST }}
+          SSH_USER: ${{ vars.PRD_SSH_USER }}
+        run: |
+          WRAPPER_SHA=$(sha256sum scripts/deploy-prd-host.sh | awk '{print $1}')
+          printf '%s\n%s\n' "$WRAPPER_SHA" "$ARTIFACT" | ssh \
+            -i ~/.ssh/prd \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" deploy
