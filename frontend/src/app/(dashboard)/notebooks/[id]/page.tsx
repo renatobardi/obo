@@ -8,6 +8,7 @@ import { SourcesColumn } from '../components/SourcesColumn'
 import { NotesColumn } from '../components/NotesColumn'
 import { ChatColumn } from '../components/ChatColumn'
 import { StudioPanel } from '@/components/studio/StudioPanel'
+import { NotebookEmptyState } from '@/components/notebooks/NotebookEmptyState'
 import { useNotebook } from '@/lib/hooks/use-notebooks'
 import { useNotebookSources } from '@/lib/hooks/use-sources'
 import { useNotes } from '@/lib/hooks/use-notes'
@@ -154,6 +155,19 @@ export default function NotebookPage() {
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-4">{t('notebooks.notFound')}</h1>
           <p className="text-muted-foreground">{t('notebooks.notFoundDesc')}</p>
+        </div>
+      </AppShell>
+    )
+  }
+
+  if (!sourcesLoading && (sources?.length ?? 0) === 0) {
+    return (
+      <AppShell>
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex-shrink-0 p-6 pb-0">
+            <NotebookHeader notebook={notebook} />
+          </div>
+          <NotebookEmptyState notebookId={notebookId} onSourceAdded={refetchSources} />
         </div>
       </AppShell>
     )
