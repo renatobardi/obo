@@ -590,7 +590,6 @@ export const enUS = {
     statusCompletedDesc: "Ready to review, download, or publish.",
     statusFailedTitle: "Failed Episodes",
     statusFailedDesc: "Episodes that encountered issues during generation.",
-    templatesWorkspaceTitle: "Profiles workspace",
     templatesWorkspaceDesc: "Build reusable episode and speaker configurations for fast podcast production.",
     howTemplatesPowerTitle: "How profiles power podcast generation",
     howTemplatesPowerDesc: "Profiles split the podcast workflow into two reusable building blocks. Mix and match them whenever you generate a new episode.",

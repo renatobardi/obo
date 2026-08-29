@@ -8,7 +8,7 @@ import type { TFunction } from 'i18next'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/lib/hooks/use-translation'
 
-type Section = {
+interface Section {
   href: string
   label: string
   icon: typeof Bot

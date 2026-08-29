@@ -86,61 +86,61 @@ export default function ApiKeysPage() {
     <div className="p-6 space-y-6">
       <p className="text-muted-foreground">{t('apiKeys.description')}</p>
 
-          {/* Encryption warning */}
-          {!encryptionReady && (
-            <Alert className="border-destructive/30 bg-destructive-tint">
-              <ShieldAlert className="h-4 w-4 text-destructive" />
-              <AlertTitle className="text-destructive">{t('apiKeys.encryptionRequired')}</AlertTitle>
-              <AlertDescription className="text-destructive">
-                <code className="text-xs bg-destructive-tint px-1 py-0.5 rounded">
-                  {t('apiKeys.encryptionRequiredDescription')}
-                </code>
-              </AlertDescription>
-            </Alert>
-          )}
+      {/* Encryption warning */}
+      {!encryptionReady && (
+        <Alert className="border-destructive/30 bg-destructive-tint">
+          <ShieldAlert className="h-4 w-4 text-destructive" />
+          <AlertTitle className="text-destructive">{t('apiKeys.encryptionRequired')}</AlertTitle>
+          <AlertDescription className="text-destructive">
+            <code className="text-xs bg-destructive-tint px-1 py-0.5 rounded">
+              {t('apiKeys.encryptionRequiredDescription')}
+            </code>
+          </AlertDescription>
+        </Alert>
+      )}
 
-          {/* Migration banner */}
-          {encryptionReady && <MigrationBanner providersToMigrate={providersToMigrate} />}
+      {/* Migration banner */}
+      {encryptionReady && <MigrationBanner providersToMigrate={providersToMigrate} />}
 
-          {/* Default Model Selectors */}
-          {models && defaults && (
-            <DefaultModelSelectors models={models} defaults={defaults} />
-          )}
+      {/* Default Model Selectors */}
+      {models && defaults && (
+        <DefaultModelSelectors models={models} defaults={defaults} />
+      )}
 
-          {/* Provider Cards */}
-          {providersError ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{t('apiKeys.providersLoadFailed')}</AlertTitle>
-              <AlertDescription>{t('apiKeys.providersLoadFailedDescription')}</AlertDescription>
-            </Alert>
-          ) : (
-            <div className="grid gap-4">
-              {sortedProviders.map(provider => (
-                <ProviderSection
-                  key={provider.name}
-                  provider={provider}
-                  credentials={credentialsByProvider[provider.name] || []}
-                  models={models || []}
-                  defaults={defaults || null}
-                  allCredentials={credentials || []}
-                  encryptionReady={encryptionReady}
-                />
-              ))}
-            </div>
-          )}
+      {/* Provider Cards */}
+      {providersError ? (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{t('apiKeys.providersLoadFailed')}</AlertTitle>
+          <AlertDescription>{t('apiKeys.providersLoadFailedDescription')}</AlertDescription>
+        </Alert>
+      ) : (
+        <div className="grid gap-4">
+          {sortedProviders.map(provider => (
+            <ProviderSection
+              key={provider.name}
+              provider={provider}
+              credentials={credentialsByProvider[provider.name] || []}
+              models={models || []}
+              defaults={defaults || null}
+              allCredentials={credentials || []}
+              encryptionReady={encryptionReady}
+            />
+          ))}
+        </div>
+      )}
 
-          {/* Help link */}
-          <div className="border-t pt-4">
-            <a
-              href="https://github.com/renatobardi/obo/blob/main/docs/5-CONFIGURATION/ai-providers.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline"
-            >
-              {t('apiKeys.learnMore')}
-            </a>
-          </div>
+      {/* Help link */}
+      <div className="border-t pt-4">
+        <a
+          href="https://github.com/renatobardi/obo/blob/main/docs/5-CONFIGURATION/ai-providers.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-primary hover:underline"
+        >
+          {t('apiKeys.learnMore')}
+        </a>
+      </div>
     </div>
   )
 }

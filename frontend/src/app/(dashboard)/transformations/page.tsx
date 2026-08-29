@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
-// Moved under /settings (PR 2). Keep the old path working.
+// Transformations now lives under /settings; keep the old URL working for
+// existing links and bookmarks.
 export default function TransformationsRedirect() {
   redirect('/settings/transformations')
 }

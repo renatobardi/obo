@@ -29,9 +29,18 @@ export default function ProfilePage() {
       <div className="max-w-2xl space-y-6">
         {user ? (
           <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-fern/15 text-base font-semibold">
-              {user.initials}
-            </span>
+            {user.photoURL ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.photoURL}
+                alt=""
+                className="h-14 w-14 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-fern/15 text-base font-semibold">
+                {user.initials}
+              </span>
+            )}
             <div className="min-w-0">
               <p className="truncate text-lg font-semibold">{user.name}</p>
               {user.email && (

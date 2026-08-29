@@ -30,14 +30,7 @@ export default function PodcastProfilesPage() {
   return (
     <div className="p-6">
       <div className="space-y-6">
-        <div className="space-y-1">
-          <h2 className="font-display text-xl font-semibold tracking-tight">
-            {t('podcasts.templatesWorkspaceTitle')}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {t('podcasts.templatesWorkspaceDesc')}
-          </p>
-        </div>
+        <p className="text-muted-foreground">{t('podcasts.templatesWorkspaceDesc')}</p>
 
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem
