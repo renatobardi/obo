@@ -19,6 +19,11 @@
 
 DEFINE FIELD OVERWRITE speaker_config ON TABLE episode_profile TYPE option<string | record<speaker_profile>>;
 
-UPDATE episode_profile SET speaker_config = (SELECT VALUE id FROM ONLY speaker_profile WHERE name = $parent.speaker_config LIMIT 1) WHERE type::is::string(speaker_config);
+-- FOR loop instead of $parent: in SurrealDB v3 a subquery inside UPDATE SET
+-- loses $parent when the filtered field is indexed (speaker_profile.name is
+-- UNIQUE), which turned every reference into NONE.
+FOR $profile IN (SELECT id, speaker_config FROM episode_profile WHERE type::is_string(speaker_config)) {
+    UPDATE $profile.id SET speaker_config = (SELECT VALUE id FROM ONLY speaker_profile WHERE name = $profile.speaker_config LIMIT 1);
+};
 
 DEFINE FIELD OVERWRITE speaker_config ON TABLE episode_profile TYPE option<record<speaker_profile>>;

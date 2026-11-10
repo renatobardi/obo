@@ -21,12 +21,19 @@
 
 -- Step 1: best-effort mapping (no-op on rows already migrated or with no
 -- legacy strings; a subquery with no match yields NONE, leaving the row
--- unresolved, which is the accepted outcome).
-UPDATE episode_profile SET outline_llm = (SELECT VALUE id FROM ONLY model WHERE provider = $parent.outline_provider AND name = $parent.outline_model AND type = "language" LIMIT 1) WHERE outline_llm = NONE AND outline_provider != NONE AND outline_provider != "" AND outline_model != NONE AND outline_model != "";
+-- unresolved, which is the accepted outcome). FOR loops instead of $parent:
+-- SurrealDB v3 drops $parent in an UPDATE subquery that hits an index.
+FOR $profile IN (SELECT id, outline_provider, outline_model FROM episode_profile WHERE outline_llm = NONE AND outline_provider != NONE AND outline_provider != "" AND outline_model != NONE AND outline_model != "") {
+    UPDATE $profile.id SET outline_llm = (SELECT VALUE id FROM ONLY model WHERE provider = $profile.outline_provider AND name = $profile.outline_model AND type = "language" LIMIT 1);
+};
 
-UPDATE episode_profile SET transcript_llm = (SELECT VALUE id FROM ONLY model WHERE provider = $parent.transcript_provider AND name = $parent.transcript_model AND type = "language" LIMIT 1) WHERE transcript_llm = NONE AND transcript_provider != NONE AND transcript_provider != "" AND transcript_model != NONE AND transcript_model != "";
+FOR $profile IN (SELECT id, transcript_provider, transcript_model FROM episode_profile WHERE transcript_llm = NONE AND transcript_provider != NONE AND transcript_provider != "" AND transcript_model != NONE AND transcript_model != "") {
+    UPDATE $profile.id SET transcript_llm = (SELECT VALUE id FROM ONLY model WHERE provider = $profile.transcript_provider AND name = $profile.transcript_model AND type = "language" LIMIT 1);
+};
 
-UPDATE speaker_profile SET voice_model = (SELECT VALUE id FROM ONLY model WHERE provider = $parent.tts_provider AND name = $parent.tts_model AND type = "text_to_speech" LIMIT 1) WHERE voice_model = NONE AND tts_provider != NONE AND tts_provider != "" AND tts_model != NONE AND tts_model != "";
+FOR $profile IN (SELECT id, tts_provider, tts_model FROM speaker_profile WHERE voice_model = NONE AND tts_provider != NONE AND tts_provider != "" AND tts_model != NONE AND tts_model != "") {
+    UPDATE $profile.id SET voice_model = (SELECT VALUE id FROM ONLY model WHERE provider = $profile.tts_provider AND name = $profile.tts_model AND type = "text_to_speech" LIMIT 1);
+};
 
 -- Step 2: clear stored legacy values before dropping the definitions.
 UPDATE episode_profile UNSET outline_provider, outline_model, transcript_provider, transcript_model;

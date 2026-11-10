@@ -1,13 +1,16 @@
 services:
   surrealdb:
-    image: surrealdb/surrealdb:v2
+    image: surrealdb/surrealdb:v3.3.0
     # Credentials default to root:root for a zero-config local setup. Before
     # exposing this instance to a network, set SURREAL_USER / SURREAL_PASSWORD
     # in a .env file (see .env.example) — they are applied here and to the
     # obo service below, so the two always stay in sync.
     # List (exec) form so each interpolated value stays a single argument —
     # a password containing spaces would otherwise be split into several.
-    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-root}", "--pass", "${SURREAL_PASSWORD:-root}", "rocksdb:/mydata/mydatabase.db"]
+    # v3 + surrealkv, same as the shared oute-surreal-db. A new path on
+    # purpose: a v2 RocksDB store (mydatabase.db) cannot be opened by v3, so an
+    # old local store is left untouched; move its data with export/import.
+    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-root}", "--pass", "${SURREAL_PASSWORD:-root}", "surrealkv:/mydata/obo.skv"]
     user: root  # Required for bind mounts on Linux
     ports:
       # Bound to localhost only: the obo service reaches this over

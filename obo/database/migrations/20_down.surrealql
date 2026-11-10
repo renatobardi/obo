@@ -7,6 +7,6 @@
 
 DEFINE FIELD OVERWRITE speaker_config ON TABLE episode_profile TYPE option<string | record<speaker_profile>>;
 
-UPDATE episode_profile SET speaker_config = speaker_config.name WHERE type::is::record(speaker_config);
+UPDATE episode_profile SET speaker_config = speaker_config.name WHERE type::is_record(speaker_config);
 
 DEFINE FIELD OVERWRITE speaker_config ON TABLE episode_profile TYPE option<string>;

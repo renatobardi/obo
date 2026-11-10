@@ -8,6 +8,12 @@ from obo.utils.proxy import ensure_internal_no_proxy
 
 ensure_internal_no_proxy()
 
+# surreal-commands signs in as a root-level user; scope it to namespace +
+# database when SURREAL_AUTH_LEVEL=database (shared oute-surreal-db).
+from obo.database.repository import install_surreal_commands_signin  # noqa: E402
+
+install_surreal_commands_signin()
+
 from .embedding_commands import (
     embed_insight_command,
     embed_note_command,

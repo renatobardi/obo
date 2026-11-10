@@ -7,4 +7,4 @@
 -- up migration left untouched (unknown roots) are already absolute and are
 -- skipped.
 
-UPDATE episode SET audio_file = string::concat("/app/data/podcasts/", audio_file) WHERE type::is::string(audio_file) AND audio_file != "" AND !string::starts_with(audio_file, "/") AND !string::starts_with(audio_file, "file://");
+UPDATE episode SET audio_file = string::concat("/app/data/podcasts/", audio_file) WHERE type::is_string(audio_file) AND audio_file != "" AND !string::starts_with(audio_file, "/") AND !string::starts_with(audio_file, "file://");

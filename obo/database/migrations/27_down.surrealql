@@ -1,0 +1,4 @@
+-- Migration 27 rollback: intentionally keeps the `command` table.
+-- Removing it would delete the job history; surreal-commands owns its data.
+
+RETURN NONE;

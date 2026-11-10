@@ -91,14 +91,14 @@ For local development, you can also use:
 # Start SurrealDB in memory (publish the port on localhost only — the
 # database uses default credentials, so never publish it on 0.0.0.0)
 docker run -d --name surrealdb -p 127.0.0.1:8000:8000 \
-  surrealdb/surrealdb:v2 start \
+  surrealdb/surrealdb:v3.3.0 start \
   --user root --pass password \
   memory
 
 # Or with persistent storage
 docker run -d --name surrealdb -p 127.0.0.1:8000:8000 \
   -v surrealdb_data:/data \
-  surrealdb/surrealdb:v2 start \
+  surrealdb/surrealdb:v3.3.0 start \
   --user root --pass password \
   file:/data/surreal.db
 ```
@@ -373,7 +373,7 @@ git push origin feature/my-feature -f
 1. Check if SurrealDB is running: `docker ps | grep surrealdb`
 2. Verify URL in `.env`: Should be `ws://localhost:8000/rpc`
 3. Restart SurrealDB: `docker stop surrealdb && docker rm surrealdb`
-4. Then restart with: `docker run -d --name surrealdb -p 127.0.0.1:8000:8000 surrealdb/surrealdb:v2 start --user root --pass password memory`
+4. Then restart with: `docker run -d --name surrealdb -p 127.0.0.1:8000:8000 surrealdb/surrealdb:v3.3.0 start --user root --pass password memory`
 
 ### "Address already in use"
 

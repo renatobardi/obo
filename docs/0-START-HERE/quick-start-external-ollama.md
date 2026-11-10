@@ -45,8 +45,8 @@ Create a new folder `obo-external-ollama` and add these files:
 ```yaml
 services:
   surrealdb:
-    image: surrealdb/surrealdb:v2
-    command: start --user root --pass password rocksdb:/mydata/mydatabase.db
+    image: surrealdb/surrealdb:v3.3.0
+    command: start --user root --pass password surrealkv:/mydata/obo.skv
     user: root
     ports:
       # Localhost only — the database uses default credentials, so never

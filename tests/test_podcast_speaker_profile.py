@@ -236,10 +236,13 @@ class TestMigration20:
             / "20.surrealql"
         ).read_text()
         assert (
-            "UPDATE episode_profile SET speaker_config = "
+            "FOR $profile IN (SELECT id, speaker_config FROM episode_profile "
+            "WHERE type::is_string(speaker_config))" in sql
+        )
+        assert (
+            "UPDATE $profile.id SET speaker_config = "
             "(SELECT VALUE id FROM ONLY speaker_profile "
-            "WHERE name = $parent.speaker_config LIMIT 1) "
-            "WHERE type::is::string(speaker_config)" in sql
+            "WHERE name = $profile.speaker_config LIMIT 1);" in sql
         )
         assert (
             "DEFINE FIELD OVERWRITE speaker_config ON TABLE episode_profile "
@@ -258,7 +261,7 @@ class TestMigration20:
         ).read_text()
         assert (
             "UPDATE episode_profile SET speaker_config = speaker_config.name "
-            "WHERE type::is::record(speaker_config)" in sql
+            "WHERE type::is_record(speaker_config)" in sql
         )
         assert (
             "DEFINE FIELD OVERWRITE speaker_config ON TABLE episode_profile "

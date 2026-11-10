@@ -82,6 +82,7 @@ SURREAL_USER=root
 SURREAL_PASSWORD=root  # Change in production!
 SURREAL_NAMESPACE=obo
 SURREAL_DATABASE=obo
+# SURREAL_AUTH_LEVEL=root   # "database" for a database-level user (signs in with namespace + database)
 ```
 
 > The only thing that is critical to not miss is the hostname in the `SURREAL_URL`. Check what URL to use based on your deployment, [here](database.md).

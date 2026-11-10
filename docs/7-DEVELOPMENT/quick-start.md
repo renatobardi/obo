@@ -37,7 +37,7 @@ In separate terminal windows:
 ```bash
 # Terminal 1: Start SurrealDB (database)
 make database
-# or: docker run -d --name surrealdb -p 127.0.0.1:8000:8000 surrealdb/surrealdb:v2 start --user root --pass password memory
+# or: docker run -d --name surrealdb -p 127.0.0.1:8000:8000 surrealdb/surrealdb:v3.3.0 start --user root --pass password memory
 
 # Terminal 2: Start API (backend on port 5055)
 make api

@@ -22,8 +22,8 @@ Create a new folder `obo` and add this file:
 ```yaml
 services:
   surrealdb:
-    image: surrealdb/surrealdb:v2
-    command: start --user root --pass password rocksdb:/mydata/mydatabase.db
+    image: surrealdb/surrealdb:v3.3.0
+    command: start --user root --pass password surrealkv:/mydata/obo.skv
     ports:
       # Localhost only — the database uses default credentials, so never
       # publish this port on 0.0.0.0

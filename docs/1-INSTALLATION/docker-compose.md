@@ -30,14 +30,14 @@ Create a file called `docker-compose.yml` with this content:
 ```yaml
 services:
   surrealdb:
-    image: surrealdb/surrealdb:v2
+    image: surrealdb/surrealdb:v3.3.0
     # Credentials default to root:root for a zero-config local setup. Before
     # exposing this instance to a network, set SURREAL_USER / SURREAL_PASSWORD
     # in a .env file (see .env.example) — they are applied here and to the
     # obo service below, so the two always stay in sync.
     # List (exec) form so each interpolated value stays a single argument —
     # a password containing spaces would otherwise be split into several.
-    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-root}", "--pass", "${SURREAL_PASSWORD:-root}", "rocksdb:/mydata/mydatabase.db"]
+    command: ["start", "--log", "info", "--user", "${SURREAL_USER:-root}", "--pass", "${SURREAL_PASSWORD:-root}", "surrealkv:/mydata/obo.skv"]
     user: root  # Required for bind mounts on Linux
     ports:
       # Bound to localhost only: the obo service reaches this over
@@ -325,7 +325,7 @@ This happens because SurrealDB runs as a non-root user but Docker creates bind m
 
 ```yaml
 surrealdb:
-  image: surrealdb/surrealdb:v2
+  image: surrealdb/surrealdb:v3.3.0
   user: root  # Fix for Linux bind mount permissions
   # ... rest of config
 ```

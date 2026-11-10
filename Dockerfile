@@ -76,8 +76,8 @@ ENV TIKTOKEN_CACHE_DIR=/app/tiktoken-cache
 RUN mkdir -p /app/tiktoken-cache && \
     .venv/bin/python -c "import tiktoken; tiktoken.get_encoding('o200k_base')"
 
-# Stage 3: SurrealDB binary (pinned to v2 to match docker-compose.yml; used by the single target only)
-FROM surrealdb/surrealdb:v2 AS surreal-binary
+# Stage 3: SurrealDB binary (pinned to match docker-compose.yml; used by the single target only)
+FROM surrealdb/surrealdb:v3.3.0 AS surreal-binary
 
 # Stage 4: Shared runtime base (everything common to both variants)
 FROM python:3.12-slim-trixie AS runtime-base

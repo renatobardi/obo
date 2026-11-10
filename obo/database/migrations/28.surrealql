@@ -1,0 +1,97 @@
+-- Migration 28: search functions with SurrealDB v3 GROUP BY semantics
+-- In v3 a selected field that is neither grouped nor aggregated comes back as
+-- an ARRAY of the group's values (v2 returned a single value), and
+-- array::flatten() over such a field yields NONEs. The v2 functions therefore
+-- returned title/parent_id as arrays, duplicated rows per item and lost the
+-- `matches` of vector search.
+-- Same inputs and output shape as migrations 4 (text) and 9 (vector):
+--   text:   id, parent_id, title, relevance
+--   vector: id, parent_id, title, similarity, matches
+-- Changes: per-index searches no longer group (the final query does) and the
+-- unused search::highlight() is gone (it never reached the output and could
+-- abort the query with "position overflow", issue #648); matches use the
+-- array::group() aggregate.
+
+REMOVE FUNCTION IF EXISTS fn::text_search;
+
+DEFINE FUNCTION fn::text_search($query_text: string, $match_count: int, $sources: bool, $show_notes: bool) {
+    LET $source_title_search = IF $sources {(
+        SELECT id, title, id AS parent_id, search::score(1) AS relevance
+        FROM source WHERE title @1@ $query_text
+    )} ELSE { [] };
+
+    LET $source_embedding_search = IF $sources {(
+        SELECT source.id AS id, source.title AS title, source.id AS parent_id, search::score(1) AS relevance
+        FROM source_embedding WHERE content @1@ $query_text
+    )} ELSE { [] };
+
+    LET $source_full_search = IF $sources {(
+        SELECT id, title, id AS parent_id, search::score(1) AS relevance
+        FROM source WHERE full_text @1@ $query_text
+    )} ELSE { [] };
+
+    LET $source_insight_search = IF $sources {(
+        SELECT id, insight_type + " - " + (source.title OR '') AS title, id AS parent_id, search::score(1) AS relevance
+        FROM source_insight WHERE content @1@ $query_text
+    )} ELSE { [] };
+
+    LET $note_title_search = IF $show_notes {(
+        SELECT id, title, id AS parent_id, search::score(1) AS relevance
+        FROM note WHERE title @1@ $query_text
+    )} ELSE { [] };
+
+    LET $note_content_search = IF $show_notes {(
+        SELECT id, title, id AS parent_id, search::score(1) AS relevance
+        FROM note WHERE content @1@ $query_text
+    )} ELSE { [] };
+
+    LET $final_results = array::concat(
+        $source_title_search, $source_embedding_search, $source_full_search,
+        $source_insight_search, $note_title_search, $note_content_search
+    );
+
+    RETURN (
+        SELECT id, parent_id, title, math::max(relevance) AS relevance
+        FROM $final_results WHERE id IS NOT NONE
+        GROUP BY id, parent_id, title ORDER BY relevance DESC LIMIT $match_count
+    );
+};
+
+REMOVE FUNCTION IF EXISTS fn::vector_search;
+
+DEFINE FUNCTION fn::vector_search($query: array<float>, $match_count: int, $sources: bool, $show_notes: bool, $min_similarity: float) {
+    LET $source_embedding_search = IF $sources {(
+        SELECT source.id AS id, source.title AS title, content, source.id AS parent_id,
+            vector::similarity::cosine(embedding, $query) AS similarity
+        FROM source_embedding
+        WHERE embedding != NONE AND array::len(embedding) = array::len($query)
+            AND vector::similarity::cosine(embedding, $query) >= $min_similarity
+        ORDER BY similarity DESC LIMIT $match_count
+    )} ELSE { [] };
+
+    LET $source_insight_search = IF $sources {(
+        SELECT id, insight_type + ' - ' + (source.title OR '') AS title, content, source.id AS parent_id,
+            vector::similarity::cosine(embedding, $query) AS similarity
+        FROM source_insight
+        WHERE embedding != NONE AND array::len(embedding) = array::len($query)
+            AND vector::similarity::cosine(embedding, $query) >= $min_similarity
+        ORDER BY similarity DESC LIMIT $match_count
+    )} ELSE { [] };
+
+    LET $note_content_search = IF $show_notes {(
+        SELECT id, title, content, id AS parent_id,
+            vector::similarity::cosine(embedding, $query) AS similarity
+        FROM note
+        WHERE embedding != NONE AND array::len(embedding) = array::len($query)
+            AND vector::similarity::cosine(embedding, $query) >= $min_similarity
+        ORDER BY similarity DESC LIMIT $match_count
+    )} ELSE { [] };
+
+    LET $all_results = array::concat($source_embedding_search, $source_insight_search, $note_content_search);
+
+    RETURN (
+        SELECT id, parent_id, title, math::max(similarity) AS similarity, array::group(content) AS matches
+        FROM $all_results WHERE id IS NOT NONE
+        GROUP BY id, parent_id, title ORDER BY similarity DESC LIMIT $match_count
+    );
+};
