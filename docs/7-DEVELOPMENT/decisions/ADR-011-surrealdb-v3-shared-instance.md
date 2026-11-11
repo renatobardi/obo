@@ -5,7 +5,7 @@
 
 ## Context
 
-Production ran its own SurrealDB 2.6.5 next to the app. The maintainer's infrastructure moves app state to shared database platforms (oute-infra-ops ADR-0003): SurrealDB v3.3.0 (`surrealkv` engine) in `oute-surreal-db`, one namespace per app, **database-level users only** (`app_` OWNER, `rw_` EDITOR, `ro_` VIEWER). Upstream Open Notebook still pins SurrealDB v2, so the port is fork work.
+Production ran its own SurrealDB 2.6.5 next to the app. The maintainer's infrastructure moves app state to shared database platforms (oute-infra-ops ADR-0003): SurrealDB v3.3.0 (`surrealkv` engine) in `oute-surreal-db`, one namespace per app, **database-level users only** (`app_` OWNER, `rw_` EDITOR, `ro_` VIEWER). The upstream project still pins SurrealDB v2, so the port is fork work.
 
 Measured against a real v3.3.0 server, the v2 code breaks in these places:
 
