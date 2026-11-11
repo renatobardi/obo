@@ -36,8 +36,10 @@ jobs:
       # tests/test_surrealdb_v3_integration.py (skipped without the URL).
       - name: Start SurrealDB v3
         run: |
-          docker run -d --name surrealdb -p 127.0.0.1:8000:8000 \
-            surrealdb/surrealdb:v3.3.0 start --user root --pass root surrealkv://data
+          # --user root: the image's non-root user cannot create the store
+          # (same reason as `user: root` in docker-compose.yml).
+          docker run -d --name surrealdb --user root -p 127.0.0.1:8000:8000 \
+            surrealdb/surrealdb:v3.3.0 start --user root --pass root surrealkv:///data/obo.skv
           for i in $(seq 1 30); do
             curl -sf http://127.0.0.1:8000/health && exit 0
             sleep 1
