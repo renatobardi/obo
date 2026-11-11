@@ -1,5 +1,12 @@
+# Production uses the shared oute-surreal-db (ADR-011), not the base file's
+# surrealdb service: it only starts with `--profile local-db`, and obo no
+# longer waits for it. `!reset` needs Docker Compose v2.24+.
 services:
+  surrealdb:
+    profiles: ["local-db"]
+
   obo:
+    depends_on: !reset []
     image: obo-prd-firebase:latest
     pull_policy: never
     environment:
@@ -8,7 +15,7 @@ services:
       OBO_AUTH_MODE: ${OBO_AUTH_MODE:?Set OBO_AUTH_MODE}
       OBO_ENCRYPTION_KEY: ${OBO_ENCRYPTION_KEY:?Set OBO_ENCRYPTION_KEY}
       OBO_FIREBASE_PROJECT_ID: ${OBO_FIREBASE_PROJECT_ID:?Set OBO_FIREBASE_PROJECT_ID}
-      SURREAL_AUTH_LEVEL: ${SURREAL_AUTH_LEVEL:-root}
+      SURREAL_AUTH_LEVEL: ${SURREAL_AUTH_LEVEL:?Set SURREAL_AUTH_LEVEL}
       SURREAL_DATABASE: ${SURREAL_DATABASE:?Set SURREAL_DATABASE}
       SURREAL_NAMESPACE: ${SURREAL_NAMESPACE:?Set SURREAL_NAMESPACE}
       SURREAL_PASSWORD: ${SURREAL_PASSWORD:?Set SURREAL_PASSWORD}
