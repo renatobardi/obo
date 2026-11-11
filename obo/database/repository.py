@@ -1,3 +1,4 @@
+import functools
 import os
 import re
 from contextlib import asynccontextmanager
@@ -64,6 +65,91 @@ def get_database_name() -> str:
     return _get_env_or_default("SURREAL_DATABASE", "obo")
 
 
+# Signin level of SURREAL_USER. "root" (default) keeps the historical behavior
+# of a root-level user (local docker-compose). "database" is a database-level
+# user, which must sign in with namespace + database: the shared
+# oute-surreal-db instance only issues database-level users.
+AUTH_LEVEL_ENV = "SURREAL_AUTH_LEVEL"
+_AUTH_LEVELS = ("root", "database")
+
+
+def get_database_auth_level() -> str:
+    """Get the configured signin level (root or database)."""
+    level = _get_env_or_default(AUTH_LEVEL_ENV, "root").strip().lower()
+    if level not in _AUTH_LEVELS:
+        raise ValueError(
+            f"Invalid {AUTH_LEVEL_ENV}: {level!r} (expected one of {_AUTH_LEVELS})"
+        )
+    return level
+
+
+def scope_signin_vars(signin_vars: Dict[str, Any]) -> Dict[str, Any]:
+    """Add namespace/database to signin vars when the user is database-level.
+
+    Vars that already name a namespace are left untouched, so explicit callers
+    always win.
+    """
+    if get_database_auth_level() != "database" or "namespace" in signin_vars:
+        return signin_vars
+    return {
+        **signin_vars,
+        "namespace": get_database_namespace(),
+        "database": get_database_name(),
+    }
+
+
+def get_signin_vars() -> Dict[str, Any]:
+    """Signin vars for the configured SurrealDB user."""
+    return scope_signin_vars(
+        {
+            "username": os.environ.get("SURREAL_USER"),
+            "password": get_database_password(),
+        }
+    )
+
+
+def _scope_connection_signin(connection: Any) -> Any:
+    original_signin = connection.signin
+
+    def signin(signin_vars: Dict[str, Any]) -> Any:
+        # Returns the coroutine of async connections unchanged.
+        return original_signin(scope_signin_vars(signin_vars))
+
+    connection.signin = signin
+    return connection
+
+
+def _scoped_connection_factory(factory: Any) -> Any:
+    @functools.wraps(factory)
+    def make_connection(*args: Any, **kwargs: Any) -> Any:
+        return _scope_connection_signin(factory(*args, **kwargs))
+
+    make_connection._obo_scoped_signin = True  # type: ignore[attr-defined]
+    return make_connection
+
+
+def install_surreal_commands_signin() -> None:
+    """Make surreal-commands sign in at the configured level.
+
+    surreal-commands (job queue: API submit + worker) always signs in with
+    username/password only, i.e. as a root-level user. Wrapping the SDK
+    factories it imported lets the same database-level user work for the
+    queue, without forking the library. Idempotent.
+    """
+    from surreal_commands import repository as commands_repository
+    from surreal_commands.core import service as commands_service
+
+    for module in (commands_repository, commands_service):
+        for name in ("AsyncSurreal", "Surreal"):
+            factory = getattr(module, name, None)
+            if factory is None or getattr(factory, "_obo_scoped_signin", False):
+                continue
+            setattr(module, name, _scoped_connection_factory(factory))
+
+
+install_surreal_commands_signin()
+
+
 def parse_record_ids(obj: Any) -> Any:
     """Recursively parse and convert RecordIDs into strings."""
     if isinstance(obj, dict):
@@ -85,12 +171,7 @@ def ensure_record_id(value: Union[str, RecordID]) -> RecordID:
 @asynccontextmanager
 async def db_connection():
     db = AsyncSurreal(get_database_url())
-    await db.signin(
-        {
-            "username": os.environ.get("SURREAL_USER"),
-            "password": get_database_password(),
-        }
-    )
+    await db.signin(get_signin_vars())
     await db.use(get_database_namespace(), get_database_name())
     try:
         yield db

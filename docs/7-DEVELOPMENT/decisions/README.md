@@ -52,6 +52,7 @@ What this makes easier, what it makes harder, what to watch. (bullets)
 | [ADR-008](ADR-008-api-url-same-origin-default.md) | The frontend defaults to same-origin API calls, never guesses a host from request headers | Accepted |
 | [ADR-009](ADR-009-kubo-monochrome-palette.md) | Content-type colors go monochrome stone; color is reserved for meaning | Accepted |
 | [ADR-010](ADR-010-ci-driven-production-deploy.md) | Production deploys are built and executed by GitHub Actions | Accepted |
+| [ADR-011](ADR-011-surrealdb-v3-shared-instance.md) | SurrealDB v3 and the shared oute-surreal-db instance | Accepted |
 | [PDR-001](PDR-001-single-user-first.md) | Single-user first; don't preclude multi-user | Superseded by PDR-003 |
 | [PDR-002](PDR-002-provider-agnostic-core.md) | Provider-agnostic core by default | Accepted |
 | [PDR-003](PDR-003-multitenant-firebase-auth.md) | Multitenant with Firebase Auth (Google + email) | Accepted |

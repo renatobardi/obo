@@ -12,7 +12,7 @@ DEFINE FIELD IF NOT EXISTS created ON TABLE episode_profile TYPE datetime DEFAUL
 DEFINE FIELD IF NOT EXISTS updated ON TABLE episode_profile TYPE datetime DEFAULT time::now();
 
 -- Create Speaker Profile table
-remove table speaker_profile;
+REMOVE TABLE IF EXISTS speaker_profile;
 DEFINE TABLE IF NOT EXISTS speaker_profile SCHEMAFULL;
 DEFINE FIELD IF NOT EXISTS name ON TABLE speaker_profile TYPE string;
 DEFINE FIELD IF NOT EXISTS description ON TABLE speaker_profile TYPE option<string>;
@@ -42,10 +42,10 @@ DEFINE FIELD IF NOT EXISTS content ON TABLE episode TYPE option<string>;
 DEFINE FIELD IF NOT EXISTS audio_file ON TABLE episode TYPE option<string>;
 
 -- Create indexes for better performance
-DEFINE INDEX IF NOT EXISTS idx_episode_profile_name ON TABLE episode_profile COLUMNS name UNIQUE CONCURRENTLY;
-DEFINE INDEX IF NOT EXISTS idx_speaker_profile_name ON TABLE speaker_profile COLUMNS name UNIQUE CONCURRENTLY;
-DEFINE INDEX IF NOT EXISTS idx_episode_profile ON TABLE episode COLUMNS episode_profile CONCURRENTLY;
-DEFINE INDEX IF NOT EXISTS idx_episode_command ON TABLE episode COLUMNS command CONCURRENTLY;
+DEFINE INDEX IF NOT EXISTS idx_episode_profile_name ON TABLE episode_profile COLUMNS name UNIQUE;
+DEFINE INDEX IF NOT EXISTS idx_speaker_profile_name ON TABLE speaker_profile COLUMNS name UNIQUE;
+DEFINE INDEX IF NOT EXISTS idx_episode_profile ON TABLE episode COLUMNS episode_profile;
+DEFINE INDEX IF NOT EXISTS idx_episode_command ON TABLE episode COLUMNS command;
 
 
 --Sample data

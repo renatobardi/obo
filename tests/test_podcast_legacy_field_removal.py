@@ -53,10 +53,13 @@ class TestMigration22Content:
         assert "WHERE outline_llm = NONE" in sql
         assert "WHERE transcript_llm = NONE" in sql
         assert "WHERE voice_model = NONE" in sql
-        # Mapping matches on the legacy strings of the row being updated.
-        assert "$parent.outline_provider" in sql
-        assert "$parent.transcript_provider" in sql
-        assert "$parent.tts_provider" in sql
+        # Mapping matches on the legacy strings of the row being updated
+        # (FOR loop variable: SurrealDB v3 drops $parent in indexed UPDATE
+        # subqueries, ADR-011).
+        assert "$profile.outline_provider" in sql
+        assert "$profile.transcript_provider" in sql
+        assert "$profile.tts_provider" in sql
+        assert "= $parent." not in sql
         # Mapping must run BEFORE the values are cleared/dropped.
         assert sql.index("outline_llm = (SELECT") < sql.index(
             "UPDATE episode_profile UNSET"

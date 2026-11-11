@@ -3,9 +3,10 @@ Async migration system for SurrealDB using the official Python client.
 Based on patterns from sblpy migration system.
 """
 
-from typing import List
+from typing import Any, Dict, List
 
 from loguru import logger
+from surrealdb import RecordID  # type: ignore
 
 from .repository import db_connection, repo_query
 
@@ -37,7 +38,8 @@ class AsyncMigration:
         """Run the migration."""
         try:
             async with db_connection() as connection:
-                await connection.query(self.sql)
+                response = await connection.query_raw(self.sql)
+            raise_on_failed_statements(response)
 
             if bump:
                 await bump_version()
@@ -47,6 +49,24 @@ class AsyncMigration:
         except Exception as e:
             logger.error(f"Migration failed: {str(e)}")
             raise
+
+
+def raise_on_failed_statements(response: Dict[str, Any]) -> None:
+    """Fail when any statement of a multi-statement query failed.
+
+    ``query()`` of the SDK returns only the first statement's result, so an
+    error in any later statement of a migration used to pass silently. The raw
+    RPC response carries one entry per statement.
+    """
+    if "error" in response:
+        raise RuntimeError(f"Migration query failed: {response['error']}")
+    failures = [
+        f"statement {index + 1}: {item.get('result')}"
+        for index, item in enumerate(response.get("result") or [])
+        if isinstance(item, dict) and item.get("status") != "OK"
+    ]
+    if failures:
+        raise RuntimeError("Migration statements failed: " + "; ".join(failures))
 
 
 class AsyncMigrationRunner:
@@ -154,6 +174,12 @@ class AsyncMigrationManager:
             AsyncMigration.from_file(
                 "obo/database/migrations/26.surrealql"
             ),
+            AsyncMigration.from_file(
+                "obo/database/migrations/27.surrealql"
+            ),
+            AsyncMigration.from_file(
+                "obo/database/migrations/28.surrealql"
+            ),
         ]
         self.down_migrations = [
             AsyncMigration.from_file(
@@ -234,6 +260,12 @@ class AsyncMigrationManager:
             AsyncMigration.from_file(
                 "obo/database/migrations/26_down.surrealql"
             ),
+            AsyncMigration.from_file(
+                "obo/database/migrations/27_down.surrealql"
+            ),
+            AsyncMigration.from_file(
+                "obo/database/migrations/28_down.surrealql"
+            ),
         ]
         self.runner = AsyncMigrationRunner(
             up_migrations=self.up_migrations,
@@ -298,14 +330,21 @@ async def get_all_versions() -> List[dict]:
         return []
 
 
+def _migration_record_id(version: int) -> RecordID:
+    # Bound as a value, the only form that works on SurrealDB v2 and v3: v3
+    # removed the type::thing() function and the v2 type::record() function
+    # does not take an id.
+    return RecordID("_sbl_migrations", version)
+
+
 async def bump_version() -> None:
     """Bump the version by adding a new entry to migrations table."""
     current_version = await get_latest_version()
     new_version = current_version + 1
 
     await repo_query(
-        "CREATE type::thing('_sbl_migrations', $version) SET version = $version, applied_at = time::now();",
-        {"version": new_version},
+        "CREATE $id SET version = $version, applied_at = time::now();",
+        {"id": _migration_record_id(new_version), "version": new_version},
     )
 
 
@@ -314,6 +353,6 @@ async def lower_version() -> None:
     current_version = await get_latest_version()
     if current_version > 0:
         await repo_query(
-            "DELETE type::thing('_sbl_migrations', $version);",
-            {"version": current_version},
+            "DELETE $id;",
+            {"id": _migration_record_id(current_version)},
         )

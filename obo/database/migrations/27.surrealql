@@ -1,0 +1,9 @@
+-- Migration 27: declare the job-queue table up front (SurrealDB v3)
+-- surreal-commands creates `command` implicitly on the first submitted job.
+-- SurrealDB v3 errors when reading a table that does not exist, so on a fresh
+-- database the worker's startup poll / LIVE query and the job-status lookups
+-- failed until the first job was queued. Declaring the table (schemaless, as
+-- the library expects) removes that window. Idempotent on databases that
+-- already have the table.
+
+DEFINE TABLE IF NOT EXISTS command SCHEMALESS;
