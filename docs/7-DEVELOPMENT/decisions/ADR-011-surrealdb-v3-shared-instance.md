@@ -35,3 +35,4 @@ Measured against a real v3.3.0 server, the v2 code breaks in these places:
 - A fresh database needs v3 (migration 1 uses the v3 index syntax); an existing v2 database keeps working and only applies 27 and 28.
 - Local v2 stores need export/import to move to v3.
 - When the wrapper for surreal-commands stops matching the library (new major version), the queue fails to authenticate in database mode: the integration test catches it.
+- Production moved on 2026-11-11 (`obo/prd` on oute-surreal-db, database-level `app_prd`). `deploy/docker-compose.prd.yml` keeps the base file's `surrealdb` service behind the `local-db` profile, so no compose command in production starts a local database again.
