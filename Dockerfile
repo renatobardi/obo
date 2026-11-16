@@ -5,7 +5,7 @@
 # npm retry logic, ...) apply to both variants at once.
 
 # Stage 1: Frontend builder
-FROM node:22-slim AS frontend-builder
+FROM node:22-trixie-slim AS frontend-builder
 WORKDIR /app/frontend
 
 # Copy dependency files first to leverage cache
@@ -83,14 +83,18 @@ FROM surrealdb/surrealdb:v3.3.0 AS surreal-binary
 FROM python:3.12-slim-trixie AS runtime-base
 
 # Install only runtime system dependencies (no build tools)
-# Add Node.js 22.x LTS for running the frontend
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     ffmpeg \
     supervisor \
     curl \
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
+
+# Node.js 22 LTS for the frontend, copied from the same image the frontend is
+# built with. The runtime only runs `node server.js` (supervisord.conf), so the
+# binary is all it needs; piping a downloaded setup script into bash ran code
+# nobody had verified (Sonar, Dockerfile:91).
+COPY --from=frontend-builder /usr/local/bin/node /usr/local/bin/node
+RUN node --version
 
 # Install uv using the official method
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
